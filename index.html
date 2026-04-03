@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weekly Marketing Report — Mar 26 – Apr 2, 2026</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg:        #f7f6f3;
+    --surface:   #ffffff;
+    --border:    #e4e2dc;
+    --text:      #1a1a18;
+    --muted:     #6b6960;
+    --faint:     #a8a59e;
+    --up:        #1a6b3c;
+    --up-bg:     #eaf4ee;
+    --down:      #b52a2a;
+    --down-bg:   #fdf0f0;
+    --neutral:   #4a6fa5;
+    --neutral-bg:#eef3fb;
+    --warn:      #7a5c1e;
+    --warn-bg:   #fdf6e3;
+    --ink-1:     #1a1a18;
+    --ink-2:     #3d3c38;
+    --accent:    #1a1a18;
+    --col-id:    #3b82f6;
+    --col-th:    #8b5cf6;
+    --col-ph:    #10b981;
+    --col-la:    #f59e0b;
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  /* ── Layout ── */
+  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px 80px; }
+
+  /* ── Header ── */
+  .report-head { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; border-bottom: 2px solid var(--text); margin-bottom: 40px; }
+  .report-head h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.5px; }
+  .report-head .meta { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.8; }
+  .report-head .meta strong { color: var(--text); font-weight: 500; }
+
+  /* ── Section ── */
+  .section { margin-bottom: 44px; }
+  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
+  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .section-note { font-size: 12px; color: var(--faint); }
+
+  /* ── KPI Cards ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
+  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
+  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--text); }
+  .kpi-name { font-size: 11px; color: var(--muted); font-weight: 400; margin-bottom: 6px; }
+  .kpi-val  { font-size: 26px; font-weight: 300; letter-spacing: -1px; font-family: 'DM Mono', monospace; line-height: 1; }
+  .kpi-chg  { font-size: 12px; margin-top: 6px; font-weight: 500; }
+  .kpi-sub  { font-size: 11px; color: var(--faint); margin-top: 2px; }
+  .up   { color: var(--up); }
+  .down { color: var(--down); }
+
+  /* ── Comparison Table ── */
+  .cmp-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cmp-table thead th { padding: 10px 14px; font-size: 11px; font-weight: 500; color: var(--muted); text-align: right; border-bottom: 1px solid var(--border); background: #fafaf8; }
+  .cmp-table thead th:first-child { text-align: left; }
+  .cmp-table thead th.week-group { text-align: center; padding: 6px 14px 4px; border-bottom: none; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .cmp-table thead .subrow th { border-top: 1px solid var(--border); }
+  .cmp-table tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; }
+  .cmp-table tbody td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13px; }
+  .cmp-table tbody tr:last-child td { border-bottom: none; background: #fafaf8; font-weight: 500; }
+  .cmp-table .paused { color: var(--faint); font-style: italic; font-family: 'DM Sans', sans-serif; font-size: 12px; }
+  .cmp-table .chg-cell { font-weight: 500; font-size: 11px; }
+  .region-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+  .col-divider { border-left: 1px dashed var(--border) !important; }
+
+  /* ── Charts ── */
+  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .chart-title { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
+  .chart-wrap  { position: relative; width: 100%; height: 190px; }
+
+  /* ── MoM table ── */
+  .mom-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .mom-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .mom-table th { padding: 9px 16px; font-size: 11px; font-weight: 500; color: var(--muted); background: #fafaf8; border-bottom: 1px solid var(--border); text-align: right; }
+  .mom-table th:first-child { text-align: left; }
+  .mom-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; }
+  .mom-table td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-size: 13px; }
+  .mom-table tr:last-child td { border-bottom: none; }
+  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .badge-up   { background: var(--up-bg);   color: var(--up);   }
+  .badge-down { background: var(--down-bg); color: var(--down); }
+
+  /* ── Projects ── */
+  .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .proj-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
+  .proj-top  { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
+  .proj-name { font-size: 14px; font-weight: 500; }
+  .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
+  .pill-live    { background: var(--up-bg);      color: var(--up);      }
+  .pill-testing { background: var(--neutral-bg); color: var(--neutral); }
+  .pill-dev     { background: var(--warn-bg);    color: var(--warn);    }
+  .proj-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
+  .proj-note { margin-top: 8px; background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 11px; }
+  .progress { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
+  .prog-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
+  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .dot-done { background: var(--up); }
+  .dot-wip  { background: #e8a020; }
+  .dot-wait { background: transparent; border: 1.5px solid var(--border); }
+  .url-chip { display: inline-block; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 11px; font-family: 'DM Mono', monospace; margin: 2px 2px 0 0; color: var(--muted); }
+
+  /* ── Focus list ── */
+  .focus-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .focus-item { display: flex; align-items: flex-start; gap: 14px; padding: 13px 18px; border-bottom: 1px solid var(--border); }
+  .focus-item:last-child { border-bottom: none; }
+  .focus-num  { font-size: 11px; font-weight: 500; color: var(--faint); font-family: 'DM Mono', monospace; padding-top: 2px; min-width: 16px; }
+  .focus-text { font-size: 13px; }
+
+  /* ── Insight bar ── */
+  .insight { font-size: 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text); border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 12px; line-height: 1.6; }
+
+  /* ── Legend ── */
+  .legend { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
+  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
+  .leg-swatch { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* ── Print ── */
+  @media print {
+    body { background: white; }
+    .page { padding: 24px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <!-- Header -->
+  <div class="report-head">
+    <div>
+      <h1>Weekly Marketing Report</h1>
+      <div style="font-size:13px; color:var(--muted); margin-top:4px;">Mar 26 – Apr 2, 2026 &nbsp;·&nbsp; Digital Marketing / Paid Ads</div>
+    </div>
+    <div class="meta">
+      <div>Reporter: <strong>Jesmon</strong></div>
+      <div>Compared to: <strong>Mar 19 – 26, 2026</strong></div>
+    </div>
+  </div>
+
+  <!-- ══ BUDGET ALLOCATION BOX ══ -->
+  <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:36px;">
+    <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
+      <div>
+        <div style="font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:3px;">Daily Ads Budget Allocation</div>
+        <div style="font-size:12px; color:var(--faint);">Current active campaigns</div>
+      </div>
+      <div style="text-align:right;">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:2px;">Total daily budget</div>
+        <div style="font-size:28px; font-weight:300; letter-spacing:-1px; font-family:'DM Mono',monospace;">$335</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px;">
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">IG LATAM Page Followers</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$10</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:3%; background:#f59e0b; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">3% of total</div>
+      </div>
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Retargeting – ID</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$50</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:15%; background:#3b82f6; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">15% of total</div>
+      </div>
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Retargeting – TH</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$50</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:15%; background:#8b5cf6; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">15% of total</div>
+      </div>
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – LATAM</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:22%; background:#f59e0b; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
+      </div>
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – ID</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:22%; background:#3b82f6; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
+      </div>
+      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
+        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – TH</div>
+        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
+        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
+          <div style="height:100%; width:22%; background:#8b5cf6; border-radius:2px;"></div>
+        </div>
+        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 1: Weekly snapshot ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">This week at a glance</span>
+      <span class="section-note">vs previous week (Mar 19–26)</span>
+    </div>
+
+    <div class="kpi-row">
+      <div class="kpi-card">
+        <div class="kpi-name">Total ad spend</div>
+        <div class="kpi-val">$738</div>
+        <div class="kpi-chg down">▼ 42.0%</div>
+        <div class="kpi-sub">was $1,272 last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">New registrations</div>
+        <div class="kpi-val">9</div>
+        <div class="kpi-chg down">▼ 47.1%</div>
+        <div class="kpi-sub">was 17 last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Depositing users</div>
+        <div class="kpi-val">4</div>
+        <div class="kpi-chg down">▼ 50.0%</div>
+        <div class="kpi-sub">was 8 last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Total deposits</div>
+        <div class="kpi-val">$329</div>
+        <div class="kpi-chg down">▼ 26.8%</div>
+        <div class="kpi-sub">was $449 last week</div>
+      </div>
+    </div>
+
+    <div class="insight">
+      Numbers dropped this week mainly because the <strong>Philippines and LATAM channels were paused</strong>. Indonesia and Thailand kept running and held steady. The overall spend drop reflects the channel pause, not a performance issue in active regions.
+    </div>
+  </div>
+
+  <!-- ══ SECTION 2: Side-by-side weekly comparison ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">Week-over-week breakdown by region</span>
+    </div>
+
+    <div style="margin-bottom:12px;">
+      <div class="legend">
+        <div class="leg-item"><span class="region-dot" style="background:var(--col-id)"></span>Indonesia</div>
+        <div class="leg-item"><span class="region-dot" style="background:var(--col-th)"></span>Thailand</div>
+        <div class="leg-item"><span class="region-dot" style="background:var(--col-ph)"></span>Philippines</div>
+        <div class="leg-item"><span class="region-dot" style="background:var(--col-la)"></span>LATAM</div>
+      </div>
+    </div>
+
+    <div class="charts-row" style="margin-bottom:16px; margin-top:0;">
+      <div class="chart-card">
+        <div class="chart-title">Ad spend ($) — by region</div>
+        <div class="chart-wrap"><canvas id="spendChart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">Registrations — by region</div>
+        <div class="chart-wrap"><canvas id="regChart"></canvas></div>
+      </div>
+    </div>
+
+    <div class="cmp-table-wrap">
+      <table class="cmp-table">
+        <thead>
+          <tr>
+            <th rowspan="2" style="border-right:1px dashed var(--border);">Region</th>
+            <th colspan="4" class="week-group" style="border-left:1px dashed var(--border)">Week 1 &nbsp; Mar 19–26</th>
+            <th colspan="4" class="week-group col-divider">Week 2 &nbsp; Mar 26–Apr 2</th>
+          </tr>
+          <tr class="subrow">
+            <th style="border-left:1px dashed var(--border)">Spend ($)</th>
+            <th>Reg.</th>
+            <th>Dep. users</th>
+            <th>Deposits ($)</th>
+            <th class="col-divider">Spend ($)</th>
+            <th>Reg.</th>
+            <th>Dep. users</th>
+            <th>Deposits ($)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="region-dot" style="background:var(--col-id)"></span>Indonesia</td>
+            <td style="border-left:1px dashed var(--border)">393.62</td><td>8</td><td>2</td><td>217.00</td>
+            <td class="col-divider">334.58</td><td>7</td><td>2</td><td>184.45</td>
+          </tr>
+          <tr>
+            <td><span class="region-dot" style="background:var(--col-th)"></span>Thailand</td>
+            <td style="border-left:1px dashed var(--border)">474.96</td><td>2</td><td>2</td><td>170.00</td>
+            <td class="col-divider">403.72</td><td>2</td><td>2</td><td>144.50</td>
+          </tr>
+          <tr>
+            <td><span class="region-dot" style="background:var(--col-ph)"></span>Philippines</td>
+            <td style="border-left:1px dashed var(--border)">225.45</td><td>2</td><td>3</td><td>37.25</td>
+            <td class="col-divider paused" colspan="4">Paused this week</td>
+          </tr>
+          <tr>
+            <td><span class="region-dot" style="background:var(--col-la)"></span>LATAM</td>
+            <td style="border-left:1px dashed var(--border)">178.32</td><td>5</td><td>1</td><td>25.00</td>
+            <td class="col-divider paused" colspan="4">Paused this week</td>
+          </tr>
+          <tr>
+            <td>Total</td>
+            <td style="border-left:1px dashed var(--border)">1,272.35</td><td>17</td><td>8</td><td>449.25</td>
+            <td class="col-divider">738.30</td><td>9</td><td>4</td><td>328.95</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 3: March monthly summary ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">March monthly summary</span>
+      <span class="section-note">vs February</span>
+    </div>
+
+    <div class="kpi-row" style="grid-template-columns:repeat(4,minmax(0,1fr))">
+      <div class="kpi-card">
+        <div class="kpi-name">Registrations</div>
+        <div class="kpi-val">85</div>
+        <div class="kpi-chg up">▲ +54.6% vs Feb</div>
+        <div class="kpi-sub">was 55 in February</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Accounts opened</div>
+        <div class="kpi-val">43</div>
+        <div class="kpi-chg up">▲ +87.0% vs Feb</div>
+        <div class="kpi-sub">was 23 in February</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Net deposits</div>
+        <div class="kpi-val">$2,113</div>
+        <div class="kpi-chg up">▲ +9.4% vs Feb</div>
+        <div class="kpi-sub">was $1,932 in February</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Trading volume</div>
+        <div class="kpi-val">48.3 lot</div>
+        <div class="kpi-chg up">▲ +2.8% vs Feb</div>
+        <div class="kpi-sub">was 46.99 in February</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px;">
+      <div class="mom-table-wrap">
+        <table class="mom-table">
+          <thead><tr><th>Metric</th><th>February</th><th>March</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td>Registrations</td><td>55</td><td>85</td><td><span class="badge badge-up">+54.6%</span></td></tr>
+            <tr><td>Accounts opened</td><td>23</td><td>43</td><td><span class="badge badge-up">+87.0%</span></td></tr>
+            <tr><td>Total deposits ($)</td><td>3,129</td><td>3,380</td><td><span class="badge badge-up">+8.0%</span></td></tr>
+            <tr><td>Withdrawals ($)</td><td>1,197</td><td>1,267</td><td><span class="badge badge-down">+5.9%</span></td></tr>
+            <tr><td>Net deposits ($)</td><td>1,932</td><td>2,113</td><td><span class="badge badge-up">+9.4%</span></td></tr>
+            <tr><td>Trading volume (lot)</td><td>46.99</td><td>48.28</td><td><span class="badge badge-up">+2.8%</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">February vs March — key metrics</div>
+        <div class="chart-wrap"><canvas id="momChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 4: Project updates ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">Project updates</span>
+    </div>
+    <div class="projects-grid">
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <div class="proj-name">📣 Telegram Ads</div>
+          <span class="pill pill-live">Live</span>
+        </div>
+        <div class="proj-body">
+          Launched and running, but spend is low — the algorithm is still in its learning phase. Multiple new channels added this week. Expecting first data by end of week before deciding whether to scale up.<br><br>
+          Watching: cost per registration &amp; deposit conversion rate.
+        </div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <div class="proj-name">✉️ Email Marketing</div>
+          <span class="pill pill-testing">Testing</span>
+        </div>
+        <div class="proj-body">
+          Sent ~100 test emails from CRM data. Results so far:<br>
+          <span style="display:inline-block;margin-top:6px">Open rate <strong>32%</strong> &nbsp;·&nbsp; Click rate <strong>5.5%</strong> &nbsp;·&nbsp; Spam <strong>&lt;23%</strong></span>
+        </div>
+        <div class="proj-note">⚠️ Spam rate is too high — industry benchmark is &lt;5%. Verify this figure before the next send. Not scaling until delivery quality is stable.</div>
+        <div class="proj-body" style="margin-top:8px">Currently fixing: email provider, domain setup (SPF/DKIM/DMARC), content, and audience segmentation.</div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <div class="proj-name">🔗 Conversion tracking (Postback)</div>
+          <span class="pill pill-dev">In dev</span>
+        </div>
+        <div class="proj-body">IT has delivered the full implementation roadmap. Development is underway.</div>
+        <div class="progress">
+          <div class="prog-row"><span class="dot dot-done"></span>Click ID capture logic — confirmed</div>
+          <div class="prog-row"><span class="dot dot-wip"></span>Data storage &amp; postback mechanism — in progress</div>
+          <div class="prog-row"><span class="dot dot-wait"></span>UAT testing — waiting</div>
+        </div>
+        <div class="proj-body" style="margin-top:8px">Once live: more accurate ad attribution → better optimisation decisions.</div>
+      </div>
+
+      <div class="proj-card">
+        <div class="proj-top">
+          <div class="proj-name">🖥️ Landing pages &amp; creatives</div>
+          <span class="pill pill-testing">Testing</span>
+        </div>
+        <div class="proj-body">
+          Using AI tools to produce landing pages quickly. First test pages are live and being paired with different ad creatives for A/B testing. Will keep producing new variations to find the best-converting combinations.
+        </div>
+        <div style="margin-top:10px">
+          <span class="url-chip">shark-app-b7kyl.ondigitalocean.app</span>
+          <span class="url-chip">squid-app-e9zwk.ondigitalocean.app</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ SECTION 5: LATAM IG Follower Campaign ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">LATAM — Instagram Follower Growth Campaign</span>
+      <span class="section-note">3-week trend</span>
+    </div>
+
+    <div class="kpi-row" style="grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:16px;">
+      <div class="kpi-card">
+        <div class="kpi-name">This week spend</div>
+        <div class="kpi-val">$60</div>
+        <div class="kpi-chg up">▼ -35.6% vs last week</div>
+        <div class="kpi-sub">was $93.21 last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Followers gained</div>
+        <div class="kpi-val">382</div>
+        <div class="kpi-chg down">▼ -44.2% vs last week</div>
+        <div class="kpi-sub">was 685 last week</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-name">Cost per follower</div>
+        <div class="kpi-val">$0.16</div>
+        <div class="kpi-chg down">▲ +14.3% vs last week</div>
+        <div class="kpi-sub">was $0.14 last week</div>
+      </div>
+      <div class="kpi-card" style="background:#fafaf8;">
+        <div class="kpi-name">Total followers (account)</div>
+        <div class="kpi-val">2,200</div>
+        <div class="kpi-sub" style="margin-top:4px">grew from 1,818 → 2,200 this week</div>
+      </div>
+    </div>
+
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+      <div>
+        <div class="cmp-table-wrap">
+          <table class="cmp-table">
+            <thead>
+              <tr>
+                <th>Metric</th>
+                <th>Week 1</th>
+                <th>Week 2</th>
+                <th>This week</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Spend ($)</td>
+                <td>55.00</td>
+                <td>93.21</td>
+                <td style="font-weight:500">60.00</td>
+              </tr>
+              <tr>
+                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Followers gained</td>
+                <td>221</td>
+                <td>685</td>
+                <td style="font-weight:500">382</td>
+              </tr>
+              <tr>
+                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Cost per follower ($)</td>
+                <td>0.25</td>
+                <td>0.14</td>
+                <td style="font-weight:500">0.16</td>
+              </tr>
+              <tr>
+                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Account followers (total)</td>
+                <td>—</td>
+                <td>1,818</td>
+                <td style="font-weight:500">2,200</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="insight" style="margin-top:10px;">
+          Week 2 was the strongest week — 685 followers at just $0.14 each. This week pulled back on spend and gained 382 followers at $0.16/follower, still better than Week 1. The account has grown from under 1,818 to <strong>2,200 followers</strong> over the past 3 weeks.
+        </div>
+      </div>
+
+      <div class="chart-card">
+        <div class="chart-title">Followers gained &amp; cost per follower — 3-week trend</div>
+        <div class="chart-wrap" style="height:200px;"><canvas id="igChart"></canvas></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ SECTION 6: Monthly priorities ══ -->
+  <div class="section">
+    <div class="section-header">
+      <span class="section-label">This month's priorities</span>
+    </div>
+    <div class="focus-list">
+      <div class="focus-item">
+        <span class="focus-num">01</span>
+        <span class="focus-text">Keep testing creative + landing page combinations to find what converts best</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">02</span>
+        <span class="focus-text">Speed up the testing cycle — iterate faster on ad creatives</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">03</span>
+        <span class="focus-text">Work closely with the Sales team to improve registration-to-deposit conversion</span>
+      </div>
+      <div class="focus-item">
+        <span class="focus-num">04</span>
+        <span class="focus-text">Tighten data monitoring across the full funnel — registration → deposit</span>
+      </div>
+      <div class="focus-item" style="background:#fafaf8">
+        <span class="focus-num" style="color:var(--text)">→</span>
+        <span class="focus-text" style="font-weight:500">Goal: improve overall conversion efficiency and grow deposit volume month over month.</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /page -->
+
+<script>
+  const PREV_COLOR  = '#d1d5db';
+  const CURR_COLOR  = '#374151';
+  const REGION_COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b'];
+  const AXIS = { ticks: { color:'#9ca3af', font:{ size:11, family:'DM Sans' } }, grid: { color:'rgba(0,0,0,0.06)' } };
+  const LEGEND_OPTS = { display:true, position:'top', align:'start', labels: { color:'#6b7280', font:{ size:11, family:'DM Sans' }, boxWidth:10, boxHeight:10, padding:14 } };
+
+  // Spend chart
+  new Chart(document.getElementById('spendChart'), {
+    type:'bar',
+    data: {
+      labels: ['Indonesia','Thailand','Philippines','LATAM'],
+      datasets: [
+        { label:'Week 1 (Mar 19–26)', data:[393.62,474.96,225.45,178.32], backgroundColor:PREV_COLOR, borderRadius:3 },
+        { label:'Week 2 (Mar 26–Apr 2)', data:[334.58,403.72,0,0], backgroundColor:CURR_COLOR, borderRadius:3 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: LEGEND_OPTS, tooltip: { callbacks: { label: c => ' $'+c.parsed.y.toFixed(2) } } },
+      scales: { x:{...AXIS, ticks:{...AXIS.ticks,maxRotation:30}}, y:{...AXIS,beginAtZero:true} }
+    }
+  });
+
+  // Registrations chart
+  new Chart(document.getElementById('regChart'), {
+    type:'bar',
+    data: {
+      labels: ['Indonesia','Thailand','Philippines','LATAM'],
+      datasets: [
+        { label:'Week 1 (Mar 19–26)', data:[8,2,2,5], backgroundColor:PREV_COLOR, borderRadius:3 },
+        { label:'Week 2 (Mar 26–Apr 2)', data:[7,2,0,0], backgroundColor:CURR_COLOR, borderRadius:3 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: LEGEND_OPTS },
+      scales: { x:{...AXIS, ticks:{...AXIS.ticks,maxRotation:30}}, y:{...AXIS,beginAtZero:true,ticks:{...AXIS.ticks,stepSize:2}} }
+    }
+  });
+
+  // IG Follower chart — 3-week trend, dual axis
+  new Chart(document.getElementById('igChart'), {
+    data: {
+      labels: ['Week 1', 'Week 2', 'This week'],
+      datasets: [
+        { type:'bar', label:'Followers gained', data:[221,685,382], backgroundColor:['#d1d5db','#374151','#6b7280'], borderRadius:4, yAxisID:'y' },
+        { type:'line', label:'Cost per follower ($)', data:[0.25,0.14,0.16], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', pointBackgroundColor:'#f59e0b', pointRadius:5, borderWidth:2, tension:0.3, yAxisID:'y2' },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: LEGEND_OPTS },
+      scales: {
+        x: { ...AXIS },
+        y:  { ...AXIS, beginAtZero:true, position:'left',  title:{ display:true, text:'Followers gained', color:'#9ca3af', font:{size:10} } },
+        y2: { ...AXIS, beginAtZero:false, position:'right', title:{ display:true, text:'$/follower', color:'#9ca3af', font:{size:10} }, grid:{drawOnChartArea:false}, min:0.10, max:0.30 }
+      }
+    }
+  });
+
+  // MoM chart
+  new Chart(document.getElementById('momChart'), {
+    type:'bar',
+    data: {
+      labels:['Registrations','Accounts','Net dep. ($00s)'],
+      datasets: [
+        { label:'February', data:[55,23,19.3], backgroundColor:PREV_COLOR, borderRadius:3 },
+        { label:'March',    data:[85,43,21.1], backgroundColor:CURR_COLOR, borderRadius:3 },
+      ]
+    },
+    options: {
+      responsive:true, maintainAspectRatio:false,
+      plugins: { legend: LEGEND_OPTS },
+      scales: { x:{...AXIS}, y:{...AXIS,beginAtZero:true} }
+    }
+  });
+</script>
+</body>
+</html>
