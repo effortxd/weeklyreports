@@ -3,649 +3,999 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Weekly Marketing Report — Mar 26 – Apr 2, 2026</title>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<title>Weekly Report Builder</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg:#f5f4f0; --surface:#fff; --border:#e2e0d8; --text:#111110;
+  --sub:#555450; --muted:#888580; --faint:#bbb8b0;
+  --up:#166534; --up-bg:#f0fdf4; --up-bd:#bbf7d0;
+  --dn:#991b1b; --dn-bg:#fef2f2; --dn-bd:#fecaca;
+  --warn:#92400e; --warn-bg:#fffbeb; --warn-bd:#fde68a;
+  --accent:#1a1a18; --nav-h:60px;
+}
+body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); font-size:14px; line-height:1.6; -webkit-font-smoothing:antialiased; }
 
-  :root {
-    --bg:        #f7f6f3;
-    --surface:   #ffffff;
-    --border:    #e4e2dc;
-    --text:      #1a1a18;
-    --muted:     #6b6960;
-    --faint:     #a8a59e;
-    --up:        #1a6b3c;
-    --up-bg:     #eaf4ee;
-    --down:      #b52a2a;
-    --down-bg:   #fdf0f0;
-    --neutral:   #4a6fa5;
-    --neutral-bg:#eef3fb;
-    --warn:      #7a5c1e;
-    --warn-bg:   #fdf6e3;
-    --ink-1:     #1a1a18;
-    --ink-2:     #3d3c38;
-    --accent:    #1a1a18;
-    --col-id:    #3b82f6;
-    --col-th:    #8b5cf6;
-    --col-ph:    #10b981;
-    --col-la:    #f59e0b;
-  }
+/* ── NAV ── */
+.nav {
+  position:fixed; top:0; left:0; right:0; height:var(--nav-h);
+  background:var(--text); color:#fff; display:flex; align-items:center;
+  justify-content:space-between; padding:0 32px; z-index:100; gap:16px;
+}
+.nav-title { font-size:16px; font-weight:600; letter-spacing:-0.3px; }
+.nav-sub   { font-size:13px; opacity:0.5; margin-left:10px; font-weight:400; }
+.nav-btns  { display:flex; gap:8px; }
+.btn { display:inline-flex; align-items:center; gap:6px; padding:8px 18px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; transition:opacity 0.15s; font-family:'Inter',sans-serif; }
+.btn:hover { opacity:0.85; }
+.btn-ghost { background:rgba(255,255,255,0.12); color:#fff; }
+.btn-active { background:#fff; color:var(--text); }
+.btn-print  { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); }
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    font-size: 14px;
-    line-height: 1.6;
-  }
+/* ── LAYOUT ── */
+.view { display:none; padding-top:var(--nav-h); min-height:100vh; }
+.view.active { display:block; }
 
-  /* ── Layout ── */
-  .page { max-width: 960px; margin: 0 auto; padding: 48px 32px 80px; }
+/* ── EDIT VIEW ── */
+.edit-page { max-width:860px; margin:0 auto; padding:40px 32px 80px; }
+.edit-page h2 { font-size:22px; font-weight:600; margin-bottom:6px; }
+.edit-page .page-sub { font-size:14px; color:var(--muted); margin-bottom:36px; }
 
-  /* ── Header ── */
-  .report-head { display: flex; justify-content: space-between; align-items: flex-end; padding-bottom: 20px; border-bottom: 2px solid var(--text); margin-bottom: 40px; }
-  .report-head h1 { font-size: 28px; font-weight: 500; letter-spacing: -0.5px; }
-  .report-head .meta { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.8; }
-  .report-head .meta strong { color: var(--text); font-weight: 500; }
+.form-section { background:var(--surface); border:1px solid var(--border); border-radius:14px; margin-bottom:20px; overflow:hidden; }
+.form-section-head {
+  display:flex; align-items:center; justify-content:space-between;
+  padding:18px 24px; cursor:pointer; user-select:none;
+  border-bottom:1px solid var(--border);
+}
+.form-section-head:hover { background:#faf9f6; }
+.fs-title { font-size:15px; font-weight:600; display:flex; align-items:center; gap:10px; }
+.fs-chevron { font-size:12px; color:var(--muted); transition:transform 0.2s; }
+.fs-chevron.open { transform:rotate(180deg); }
+.form-body { padding:24px; display:none; }
+.form-body.open { display:block; }
 
-  /* ── Section ── */
-  .section { margin-bottom: 44px; }
-  .section-header { display: flex; align-items: baseline; gap: 12px; margin-bottom: 16px; }
-  .section-label { font-size: 11px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
-  .section-note { font-size: 12px; color: var(--faint); }
+.field { margin-bottom:18px; }
+.field label { display:block; font-size:13px; font-weight:500; color:var(--sub); margin-bottom:6px; }
+.field input, .field select, .field textarea {
+  width:100%; padding:10px 13px; border:1px solid var(--border); border-radius:8px;
+  font-size:14px; font-family:'Inter',sans-serif; background:var(--bg); color:var(--text);
+  outline:none; transition:border-color 0.15s;
+}
+.field input:focus, .field select:focus, .field textarea:focus { border-color:#888; background:#fff; }
+.field textarea { resize:vertical; min-height:80px; }
+.field-row { display:grid; gap:14px; }
+.field-row.cols-2 { grid-template-columns:1fr 1fr; }
+.field-row.cols-3 { grid-template-columns:1fr 1fr 1fr; }
+.field-row.cols-4 { grid-template-columns:1fr 1fr 1fr 1fr; }
 
-  /* ── KPI Cards ── */
-  .kpi-row { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; margin-bottom: 14px; }
-  .kpi-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; position: relative; overflow: hidden; }
-  .kpi-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--text); }
-  .kpi-name { font-size: 11px; color: var(--muted); font-weight: 400; margin-bottom: 6px; }
-  .kpi-val  { font-size: 26px; font-weight: 300; letter-spacing: -1px; font-family: 'DM Mono', monospace; line-height: 1; }
-  .kpi-chg  { font-size: 12px; margin-top: 6px; font-weight: 500; }
-  .kpi-sub  { font-size: 11px; color: var(--faint); margin-top: 2px; }
-  .up   { color: var(--up); }
-  .down { color: var(--down); }
+.tbl-input { width:100%; border-collapse:collapse; }
+.tbl-input th { font-size:11px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; padding:8px 10px; background:#faf9f6; border:1px solid var(--border); text-align:left; }
+.tbl-input td { border:1px solid var(--border); padding:4px; }
+.tbl-input td input { border:none; background:transparent; padding:8px 10px; width:100%; font-size:14px; font-family:'Inter',sans-serif; outline:none; }
+.tbl-input td input:focus { background:#fffef8; }
+.tbl-input .row-label { font-size:13px; font-weight:500; padding:8px 12px; background:#faf9f6; white-space:nowrap; }
+.tbl-input td.paused-toggle { text-align:center; vertical-align:middle; }
+.toggle { display:flex; align-items:center; gap:8px; font-size:12px; color:var(--muted); justify-content:center; }
+.toggle input[type=checkbox] { width:16px; height:16px; cursor:pointer; }
 
-  /* ── Comparison Table ── */
-  .cmp-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .cmp-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .cmp-table thead th { padding: 10px 14px; font-size: 11px; font-weight: 500; color: var(--muted); text-align: right; border-bottom: 1px solid var(--border); background: #fafaf8; }
-  .cmp-table thead th:first-child { text-align: left; }
-  .cmp-table thead th.week-group { text-align: center; padding: 6px 14px 4px; border-bottom: none; font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
-  .cmp-table thead .subrow th { border-top: 1px solid var(--border); }
-  .cmp-table tbody td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; }
-  .cmp-table tbody td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-weight: 500; font-size: 13px; }
-  .cmp-table tbody tr:last-child td { border-bottom: none; background: #fafaf8; font-weight: 500; }
-  .cmp-table .paused { color: var(--faint); font-style: italic; font-family: 'DM Sans', sans-serif; font-size: 12px; }
-  .cmp-table .chg-cell { font-weight: 500; font-size: 11px; }
-  .region-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
-  .col-divider { border-left: 1px dashed var(--border) !important; }
+.add-row-btn { margin-top:10px; padding:7px 14px; border:1px dashed var(--border); border-radius:7px; background:transparent; font-size:13px; color:var(--muted); cursor:pointer; font-family:'Inter',sans-serif; }
+.add-row-btn:hover { border-color:var(--text); color:var(--text); background:#faf9f6; }
+.del-btn { background:none; border:none; color:var(--faint); cursor:pointer; font-size:16px; padding:0 6px; line-height:1; }
+.del-btn:hover { color:var(--dn); }
 
-  /* ── Charts ── */
-  .charts-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
-  .chart-title { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 14px; }
-  .chart-wrap  { position: relative; width: 100%; height: 190px; }
+.status-sel { padding:6px 10px; border-radius:6px; font-size:13px; font-family:'Inter',sans-serif; border:1px solid var(--border); }
+.proj-block { border:1px solid var(--border); border-radius:10px; padding:16px; margin-bottom:12px; }
+.proj-block-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+.proj-block-head strong { flex:1; font-size:14px; }
 
-  /* ── MoM table ── */
-  .mom-table-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .mom-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-  .mom-table th { padding: 9px 16px; font-size: 11px; font-weight: 500; color: var(--muted); background: #fafaf8; border-bottom: 1px solid var(--border); text-align: right; }
-  .mom-table th:first-child { text-align: left; }
-  .mom-table td { padding: 10px 16px; border-bottom: 1px solid var(--border); text-align: right; font-family: 'DM Mono', monospace; font-size: 12px; }
-  .mom-table td:first-child { text-align: left; font-family: 'DM Sans', sans-serif; font-size: 13px; }
-  .mom-table tr:last-child td { border-bottom: none; }
-  .badge { display: inline-block; padding: 2px 8px; border-radius: 99px; font-size: 11px; font-weight: 500; }
-  .badge-up   { background: var(--up-bg);   color: var(--up);   }
-  .badge-down { background: var(--down-bg); color: var(--down); }
+.save-bar { position:fixed; bottom:0; left:0; right:0; background:var(--text); color:#fff; padding:14px 32px; display:flex; align-items:center; justify-content:space-between; z-index:99; }
+.save-bar .saved-msg { font-size:13px; opacity:0.6; }
+.btn-save { background:#fff; color:var(--text); border:none; padding:10px 28px; border-radius:8px; font-size:14px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; }
+.btn-save:hover { opacity:0.9; }
 
-  /* ── Projects ── */
-  .projects-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-  .proj-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; }
-  .proj-top  { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
-  .proj-name { font-size: 14px; font-weight: 500; }
-  .pill { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 500; }
-  .pill-live    { background: var(--up-bg);      color: var(--up);      }
-  .pill-testing { background: var(--neutral-bg); color: var(--neutral); }
-  .pill-dev     { background: var(--warn-bg);    color: var(--warn);    }
-  .proj-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
-  .proj-note { margin-top: 8px; background: var(--warn-bg); color: var(--warn); border-radius: 6px; padding: 7px 10px; font-size: 11px; }
-  .progress { margin-top: 10px; display: flex; flex-direction: column; gap: 5px; }
-  .prog-row { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); }
-  .dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-  .dot-done { background: var(--up); }
-  .dot-wip  { background: #e8a020; }
-  .dot-wait { background: transparent; border: 1.5px solid var(--border); }
-  .url-chip { display: inline-block; background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: 2px 7px; font-size: 11px; font-family: 'DM Mono', monospace; margin: 2px 2px 0 0; color: var(--muted); }
+/* ── REPORT VIEW ── */
+.report-page { max-width:1020px; margin:0 auto; padding:52px 40px 100px; }
 
-  /* ── Focus list ── */
-  .focus-list { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
-  .focus-item { display: flex; align-items: flex-start; gap: 14px; padding: 13px 18px; border-bottom: 1px solid var(--border); }
-  .focus-item:last-child { border-bottom: none; }
-  .focus-num  { font-size: 11px; font-weight: 500; color: var(--faint); font-family: 'DM Mono', monospace; padding-top: 2px; min-width: 16px; }
-  .focus-text { font-size: 13px; }
+.rpt-header { display:flex; justify-content:space-between; align-items:flex-end; padding-bottom:24px; border-bottom:2px solid var(--text); margin-bottom:36px; }
+.rpt-header h1 { font-size:32px; font-weight:600; letter-spacing:-0.5px; }
+.rpt-header .sub { font-size:15px; color:var(--sub); margin-top:4px; }
+.rpt-header .meta { text-align:right; font-size:14px; color:var(--sub); line-height:2; }
+.rpt-header .meta strong { color:var(--text); font-weight:500; }
 
-  /* ── Insight bar ── */
-  .insight { font-size: 12px; color: var(--muted); background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--text); border-radius: 0 6px 6px 0; padding: 10px 14px; margin-top: 12px; line-height: 1.6; }
+.budget-box { background:var(--surface); border:1px solid var(--border); border-radius:14px; padding:28px 32px; margin-bottom:48px; }
+.budget-top { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:24px; }
+.budget-top .lbl { font-size:11px; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); margin-bottom:4px; }
+.budget-top .ttl { font-size:20px; font-weight:600; }
+.t-label { font-size:12px; color:var(--muted); margin-bottom:4px; }
+.t-val   { font-size:40px; font-weight:300; letter-spacing:-2px; }
+.budget-grid { display:grid; gap:10px; }
+.b-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+.b-name { font-size:12px; color:var(--sub); line-height:1.4; margin-bottom:8px; min-height:34px; }
+.b-val  { font-size:22px; font-weight:500; letter-spacing:-0.5px; }
+.b-bar-track { height:4px; background:var(--border); border-radius:2px; margin-top:10px; overflow:hidden; }
+.b-bar-fill  { height:100%; border-radius:2px; }
+.b-pct { font-size:11px; color:var(--muted); margin-top:5px; }
 
-  /* ── Legend ── */
-  .legend { display: flex; gap: 14px; margin-bottom: 12px; flex-wrap: wrap; }
-  .leg-item { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--muted); }
-  .leg-swatch { width: 10px; height: 10px; border-radius: 2px; }
+.section { margin-bottom:52px; }
+.s-header { display:flex; align-items:baseline; gap:14px; margin-bottom:20px; padding-bottom:10px; border-bottom:1px solid var(--border); }
+.s-title { font-size:18px; font-weight:600; }
+.s-note  { font-size:14px; color:var(--muted); }
 
-  /* ── Print ── */
-  @media print {
-    body { background: white; }
-    .page { padding: 24px; }
-  }
+.kpi-grid { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin-bottom:20px; }
+.kpi { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:20px 22px; }
+.kpi-label  { font-size:13px; color:var(--sub); margin-bottom:8px; }
+.kpi-value  { font-size:34px; font-weight:300; letter-spacing:-1.5px; line-height:1; }
+.kpi-change { font-size:14px; font-weight:500; margin-top:10px; }
+.kpi-prev   { font-size:12px; color:var(--muted); margin-top:3px; }
+.up { color:var(--up); } .dn { color:var(--dn); }
+
+.tbl-wrap { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; margin-bottom:16px; }
+.rpt-table { width:100%; border-collapse:collapse; }
+.rpt-table thead th { font-size:12px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:0.06em; padding:14px 18px; text-align:right; background:#faf9f6; border-bottom:1px solid var(--border); }
+.rpt-table thead th:first-child { text-align:left; }
+.rpt-table tbody td { padding:14px 18px; font-size:15px; border-bottom:1px solid var(--border); text-align:right; }
+.rpt-table tbody td:first-child { text-align:left; font-weight:500; }
+.rpt-table tbody tr:last-child td { border-bottom:none; }
+.rpt-table .total-row td { background:#faf9f6; font-weight:600; }
+.rpt-table .col-div { border-left:2px solid var(--border) !important; }
+.grp-hdr th { background:var(--text) !important; color:#fff !important; text-align:center !important; padding:10px 18px !important; border-bottom:none !important; }
+.grp-hdr th:first-child { text-align:left !important; background:#faf9f6 !important; color:var(--muted) !important; }
+.grp-hdr th.dark2 { background:#333 !important; }
+.paused-cell { color:var(--muted); font-style:italic; font-size:13px; }
+.badge { display:inline-block; padding:3px 10px; border-radius:99px; font-size:13px; font-weight:500; }
+.badge-up { background:var(--up-bg); color:var(--up); border:1px solid var(--up-bd); }
+.badge-dn { background:var(--dn-bg); color:var(--dn); border:1px solid var(--dn-bd); }
+
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.chart-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 24px; }
+.chart-title { font-size:14px; font-weight:500; color:var(--sub); margin-bottom:16px; }
+.chart-wrap { position:relative; width:100%; height:210px; }
+
+.insight { font-size:14px; color:var(--sub); line-height:1.7; background:var(--surface); border:1px solid var(--border); border-left:4px solid var(--text); border-radius:0 10px 10px 0; padding:14px 18px; margin-top:14px; }
+.note { font-size:13px; line-height:1.6; background:var(--warn-bg); color:var(--warn); border:1px solid var(--warn-bd); border-radius:8px; padding:10px 14px; margin-top:10px; }
+
+.proj-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.proj-card { background:var(--surface); border:1px solid var(--border); border-radius:12px; padding:22px 24px; }
+.proj-top  { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:10px; }
+.proj-name { font-size:16px; font-weight:600; }
+.pill { display:inline-block; padding:3px 12px; border-radius:99px; font-size:12px; font-weight:500; }
+.pill-live    { background:var(--up-bg);  color:var(--up);    border:1px solid var(--up-bd);    }
+.pill-testing { background:#eff6ff;       color:#1d4ed8;      border:1px solid #bfdbfe;         }
+.pill-dev     { background:var(--warn-bg);color:var(--warn);  border:1px solid var(--warn-bd);  }
+.pill-paused  { background:#f3f4f6;       color:#6b7280;      border:1px solid #e5e7eb;         }
+.proj-body { font-size:14px; color:var(--sub); line-height:1.7; }
+.progress { margin-top:14px; display:flex; flex-direction:column; gap:8px; }
+.prog-row { display:flex; align-items:center; gap:10px; font-size:14px; color:var(--sub); }
+.dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+.dot-done { background:var(--up); } .dot-wip { background:#d97706; } .dot-wait { background:transparent; border:2px solid var(--faint); }
+.url-chip { display:inline-block; background:var(--bg); border:1px solid var(--border); border-radius:5px; padding:3px 9px; font-size:12px; font-family:monospace; color:var(--sub); margin:3px 3px 0 0; }
+
+.focus-list { background:var(--surface); border:1px solid var(--border); border-radius:12px; overflow:hidden; }
+.focus-item { display:flex; align-items:flex-start; gap:18px; padding:16px 22px; border-bottom:1px solid var(--border); }
+.focus-item:last-child { border-bottom:none; background:#faf9f6; }
+.focus-num  { font-size:12px; font-weight:600; color:var(--muted); min-width:20px; padding-top:2px; }
+.focus-text { font-size:15px; }
+
+@media print {
+  .nav, .save-bar { display:none !important; }
+  .view { padding-top:0 !important; }
+  body { background:#fff; }
+}
 </style>
 </head>
 <body>
-<div class="page">
 
-  <!-- Header -->
-  <div class="report-head">
-    <div>
-      <h1>Weekly Marketing Report</h1>
-      <div style="font-size:13px; color:var(--muted); margin-top:4px;">Mar 26 – Apr 2, 2026 &nbsp;·&nbsp; Digital Marketing / Paid Ads</div>
-    </div>
-    <div class="meta">
-      <div>Reporter: <strong>Jesmon</strong></div>
-      <div>Compared to: <strong>Mar 19 – 26, 2026</strong></div>
-    </div>
+<!-- NAV -->
+<nav class="nav">
+  <div>
+    <span class="nav-title">📊 Weekly Report Builder</span>
+    <span class="nav-sub">Auto-saves your data</span>
   </div>
+  <div class="nav-btns">
+    <button class="btn btn-active" id="btn-edit" onclick="showView('edit')">✏️ &nbsp;Edit Data</button>
+    <button class="btn btn-ghost" id="btn-report" onclick="showView('report')">👁 &nbsp;Preview Report</button>
+    <button class="btn btn-print" onclick="window.print()">🖨 &nbsp;Print / PDF</button>
+  </div>
+</nav>
 
-  <!-- ══ BUDGET ALLOCATION BOX ══ -->
-  <div style="background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:20px 24px; margin-bottom:36px;">
-    <div style="display:flex; align-items:baseline; justify-content:space-between; margin-bottom:14px;">
-      <div>
-        <div style="font-size:11px; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:3px;">Daily Ads Budget Allocation</div>
-        <div style="font-size:12px; color:var(--faint);">Current active campaigns</div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:2px;">Total daily budget</div>
-        <div style="font-size:28px; font-weight:300; letter-spacing:-1px; font-family:'DM Mono',monospace;">$335</div>
-      </div>
+<!-- ════════════════════════════════════════ EDIT VIEW -->
+<div class="view active" id="view-edit">
+<div class="edit-page">
+  <h2>Weekly Report Data</h2>
+  <p class="page-sub">Fill in the details below. Everything saves automatically. Switch to "Preview Report" when ready.</p>
+
+  <!-- 1. Report Info -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">📋 &nbsp;Report Info</span>
+      <span class="fs-chevron open">▼</span>
     </div>
-
-    <div style="display:grid; grid-template-columns:repeat(6,minmax(0,1fr)); gap:8px;">
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">IG LATAM Page Followers</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$10</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:3%; background:#f59e0b; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">3% of total</div>
+    <div class="form-body open">
+      <div class="field-row cols-3">
+        <div class="field"><label>Reporter Name</label><input type="text" id="f-reporter" placeholder="e.g. Jesmon"></div>
+        <div class="field"><label>This Week</label><input type="text" id="f-week-curr" placeholder="e.g. Mar 26 – Apr 2, 2026"></div>
+        <div class="field"><label>Previous Week</label><input type="text" id="f-week-prev" placeholder="e.g. Mar 19 – 26, 2026"></div>
       </div>
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Retargeting – ID</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$50</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:15%; background:#3b82f6; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">15% of total</div>
-      </div>
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Retargeting – TH</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$50</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:15%; background:#8b5cf6; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">15% of total</div>
-      </div>
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – LATAM</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:22%; background:#f59e0b; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
-      </div>
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – ID</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:22%; background:#3b82f6; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
-      </div>
-      <div style="background:var(--bg); border-radius:8px; padding:12px 14px; border:1px solid var(--border);">
-        <div style="font-size:11px; color:var(--muted); margin-bottom:6px; line-height:1.4;">Million Dollar Live – TH</div>
-        <div style="font-size:20px; font-weight:400; font-family:'DM Mono',monospace;">$75</div>
-        <div style="margin-top:6px; height:3px; background:var(--border); border-radius:2px; overflow:hidden;">
-          <div style="height:100%; width:22%; background:#8b5cf6; border-radius:2px;"></div>
-        </div>
-        <div style="font-size:10px; color:var(--faint); margin-top:4px;">22% of total</div>
+      <div class="field-row cols-2">
+        <div class="field"><label>Current Month Label</label><input type="text" id="f-month-curr" placeholder="e.g. March"></div>
+        <div class="field"><label>Previous Month Label</label><input type="text" id="f-month-prev" placeholder="e.g. February"></div>
       </div>
     </div>
   </div>
 
-  <!-- ══ SECTION 1: Weekly snapshot ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">This week at a glance</span>
-      <span class="section-note">vs previous week (Mar 19–26)</span>
+  <!-- 2. Daily Budget -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">💰 &nbsp;Daily Budget Allocation</span>
+      <span class="fs-chevron">▼</span>
     </div>
-
-    <div class="kpi-row">
-      <div class="kpi-card">
-        <div class="kpi-name">Total ad spend</div>
-        <div class="kpi-val">$738</div>
-        <div class="kpi-chg down">▼ 42.0%</div>
-        <div class="kpi-sub">was $1,272 last week</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">New registrations</div>
-        <div class="kpi-val">9</div>
-        <div class="kpi-chg down">▼ 47.1%</div>
-        <div class="kpi-sub">was 17 last week</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Depositing users</div>
-        <div class="kpi-val">4</div>
-        <div class="kpi-chg down">▼ 50.0%</div>
-        <div class="kpi-sub">was 8 last week</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Total deposits</div>
-        <div class="kpi-val">$329</div>
-        <div class="kpi-chg down">▼ 26.8%</div>
-        <div class="kpi-sub">was $449 last week</div>
-      </div>
-    </div>
-
-    <div class="insight">
-      Numbers dropped this week mainly because the <strong>Philippines and LATAM channels were paused</strong>. Indonesia and Thailand kept running and held steady. The overall spend drop reflects the channel pause, not a performance issue in active regions.
+    <div class="form-body">
+      <table class="tbl-input" id="budget-table">
+        <thead><tr><th>Campaign Name</th><th>Daily Spend ($)</th><th></th></tr></thead>
+        <tbody id="budget-tbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addBudgetRow()">+ Add Campaign</button>
     </div>
   </div>
 
-  <!-- ══ SECTION 2: Side-by-side weekly comparison ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">Week-over-week breakdown by region</span>
+  <!-- 3. Weekly Performance -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">📊 &nbsp;Weekly Performance by Region</span>
+      <span class="fs-chevron">▼</span>
     </div>
-
-    <div style="margin-bottom:12px;">
-      <div class="legend">
-        <div class="leg-item"><span class="region-dot" style="background:var(--col-id)"></span>Indonesia</div>
-        <div class="leg-item"><span class="region-dot" style="background:var(--col-th)"></span>Thailand</div>
-        <div class="leg-item"><span class="region-dot" style="background:var(--col-ph)"></span>Philippines</div>
-        <div class="leg-item"><span class="region-dot" style="background:var(--col-la)"></span>LATAM</div>
-      </div>
-    </div>
-
-    <div class="charts-row" style="margin-bottom:16px; margin-top:0;">
-      <div class="chart-card">
-        <div class="chart-title">Ad spend ($) — by region</div>
-        <div class="chart-wrap"><canvas id="spendChart"></canvas></div>
-      </div>
-      <div class="chart-card">
-        <div class="chart-title">Registrations — by region</div>
-        <div class="chart-wrap"><canvas id="regChart"></canvas></div>
-      </div>
-    </div>
-
-    <div class="cmp-table-wrap">
-      <table class="cmp-table">
+    <div class="form-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Check "Paused" if a region didn't run this week.</p>
+      <table class="tbl-input" id="regions-table">
         <thead>
           <tr>
-            <th rowspan="2" style="border-right:1px dashed var(--border);">Region</th>
-            <th colspan="4" class="week-group" style="border-left:1px dashed var(--border)">Week 1 &nbsp; Mar 19–26</th>
-            <th colspan="4" class="week-group col-divider">Week 2 &nbsp; Mar 26–Apr 2</th>
+            <th>Region</th>
+            <th colspan="4" style="text-align:center;background:#faf9f6;">Last Week</th>
+            <th colspan="4" style="text-align:center;background:#faf9f6;">This Week</th>
+            <th>Paused?</th>
+            <th></th>
           </tr>
-          <tr class="subrow">
-            <th style="border-left:1px dashed var(--border)">Spend ($)</th>
-            <th>Reg.</th>
-            <th>Dep. users</th>
-            <th>Deposits ($)</th>
-            <th class="col-divider">Spend ($)</th>
-            <th>Reg.</th>
-            <th>Dep. users</th>
-            <th>Deposits ($)</th>
+          <tr>
+            <th></th>
+            <th>Spend ($)</th><th>Reg.</th><th>Dep.</th><th>Deposits ($)</th>
+            <th>Spend ($)</th><th>Reg.</th><th>Dep.</th><th>Deposits ($)</th>
+            <th></th><th></th>
           </tr>
         </thead>
+        <tbody id="regions-tbody"></tbody>
+      </table>
+      <button class="add-row-btn" onclick="addRegionRow()">+ Add Region</button>
+    </div>
+  </div>
+
+  <!-- 4. Monthly Comparison -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">📅 &nbsp;Monthly Comparison</span>
+      <span class="fs-chevron">▼</span>
+    </div>
+    <div class="form-body">
+      <table class="tbl-input">
+        <thead><tr><th>Metric</th><th>Previous Month</th><th>Current Month</th></tr></thead>
         <tbody>
-          <tr>
-            <td><span class="region-dot" style="background:var(--col-id)"></span>Indonesia</td>
-            <td style="border-left:1px dashed var(--border)">393.62</td><td>8</td><td>2</td><td>217.00</td>
-            <td class="col-divider">334.58</td><td>7</td><td>2</td><td>184.45</td>
-          </tr>
-          <tr>
-            <td><span class="region-dot" style="background:var(--col-th)"></span>Thailand</td>
-            <td style="border-left:1px dashed var(--border)">474.96</td><td>2</td><td>2</td><td>170.00</td>
-            <td class="col-divider">403.72</td><td>2</td><td>2</td><td>144.50</td>
-          </tr>
-          <tr>
-            <td><span class="region-dot" style="background:var(--col-ph)"></span>Philippines</td>
-            <td style="border-left:1px dashed var(--border)">225.45</td><td>2</td><td>3</td><td>37.25</td>
-            <td class="col-divider paused" colspan="4">Paused this week</td>
-          </tr>
-          <tr>
-            <td><span class="region-dot" style="background:var(--col-la)"></span>LATAM</td>
-            <td style="border-left:1px dashed var(--border)">178.32</td><td>5</td><td>1</td><td>25.00</td>
-            <td class="col-divider paused" colspan="4">Paused this week</td>
-          </tr>
-          <tr>
-            <td>Total</td>
-            <td style="border-left:1px dashed var(--border)">1,272.35</td><td>17</td><td>8</td><td>449.25</td>
-            <td class="col-divider">738.30</td><td>9</td><td>4</td><td>328.95</td>
-          </tr>
+          <tr><td class="row-label">Registrations</td><td><input type="number" id="m-reg-p" step="1"></td><td><input type="number" id="m-reg-c" step="1"></td></tr>
+          <tr><td class="row-label">Accounts Opened</td><td><input type="number" id="m-acc-p" step="1"></td><td><input type="number" id="m-acc-c" step="1"></td></tr>
+          <tr><td class="row-label">Total Deposits ($)</td><td><input type="number" id="m-dep-p" step="0.01"></td><td><input type="number" id="m-dep-c" step="0.01"></td></tr>
+          <tr><td class="row-label">Withdrawals ($)</td><td><input type="number" id="m-out-p" step="0.01"></td><td><input type="number" id="m-out-c" step="0.01"></td></tr>
+          <tr><td class="row-label">Net Deposits ($)</td><td><input type="number" id="m-net-p" step="0.01"></td><td><input type="number" id="m-net-c" step="0.01"></td></tr>
+          <tr><td class="row-label">Trading Volume (lot)</td><td><input type="number" id="m-lot-p" step="0.001"></td><td><input type="number" id="m-lot-c" step="0.001"></td></tr>
         </tbody>
       </table>
     </div>
   </div>
 
-  <!-- ══ SECTION 3: March monthly summary ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">March monthly summary</span>
-      <span class="section-note">vs February</span>
+  <!-- 5. Instagram Campaign -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">📸 &nbsp;LATAM Instagram Follower Campaign</span>
+      <span class="fs-chevron">▼</span>
     </div>
-
-    <div class="kpi-row" style="grid-template-columns:repeat(4,minmax(0,1fr))">
-      <div class="kpi-card">
-        <div class="kpi-name">Registrations</div>
-        <div class="kpi-val">85</div>
-        <div class="kpi-chg up">▲ +54.6% vs Feb</div>
-        <div class="kpi-sub">was 55 in February</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Accounts opened</div>
-        <div class="kpi-val">43</div>
-        <div class="kpi-chg up">▲ +87.0% vs Feb</div>
-        <div class="kpi-sub">was 23 in February</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Net deposits</div>
-        <div class="kpi-val">$2,113</div>
-        <div class="kpi-chg up">▲ +9.4% vs Feb</div>
-        <div class="kpi-sub">was $1,932 in February</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Trading volume</div>
-        <div class="kpi-val">48.3 lot</div>
-        <div class="kpi-chg up">▲ +2.8% vs Feb</div>
-        <div class="kpi-sub">was 46.99 in February</div>
+    <div class="form-body">
+      <table class="tbl-input" style="margin-bottom:14px;">
+        <thead><tr><th>Metric</th><th>Week 1</th><th>Week 2</th><th>This Week</th></tr></thead>
+        <tbody>
+          <tr><td class="row-label">Spend ($)</td><td><input type="number" id="ig-s1" step="0.01"></td><td><input type="number" id="ig-s2" step="0.01"></td><td><input type="number" id="ig-s3" step="0.01"></td></tr>
+          <tr><td class="row-label">Followers Gained</td><td><input type="number" id="ig-f1" step="1"></td><td><input type="number" id="ig-f2" step="1"></td><td><input type="number" id="ig-f3" step="1"></td></tr>
+        </tbody>
+      </table>
+      <div class="field-row cols-2">
+        <div class="field"><label>Account followers at start of this week</label><input type="number" id="ig-start" step="1" placeholder="e.g. 1818"></div>
+        <div class="field"><label>Account followers at end of this week</label><input type="number" id="ig-end" step="1" placeholder="e.g. 2200"></div>
       </div>
     </div>
+  </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:14px;">
-      <div class="mom-table-wrap">
-        <table class="mom-table">
-          <thead><tr><th>Metric</th><th>February</th><th>March</th><th>Change</th></tr></thead>
+  <!-- 5b. Landing Pages -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">&#128196; &nbsp;Landing Page Insights</span>
+      <span class="fs-chevron">&#9660;</span>
+    </div>
+    <div class="form-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:14px;">Add one row per landing page you want to report on.</p>
+      <div id="lp-list"></div>
+      <button class="add-row-btn" onclick="addLPRow()">+ Add Landing Page</button>
+    </div>
+  </div>
+
+    <!-- 6. Projects -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">🚀 &nbsp;Project Updates</span>
+      <span class="fs-chevron">▼</span>
+    </div>
+    <div class="form-body" id="projects-body">
+      <div id="projects-list"></div>
+      <button class="add-row-btn" onclick="addProjectRow()">+ Add Project</button>
+    </div>
+  </div>
+
+  <!-- 7. Priorities -->
+  <div class="form-section">
+    <div class="form-section-head" onclick="toggleSection(this)">
+      <span class="fs-title">🎯 &nbsp;Monthly Priorities</span>
+      <span class="fs-chevron">▼</span>
+    </div>
+    <div class="form-body">
+      <div id="priorities-list"></div>
+      <button class="add-row-btn" onclick="addPriorityRow()">+ Add Priority</button>
+      <div class="field" style="margin-top:14px;">
+        <label>Goal Statement (shown at the bottom)</label>
+        <input type="text" id="f-goal" placeholder="e.g. Improve overall conversion efficiency and grow deposit volume.">
+      </div>
+    </div>
+  </div>
+
+</div>
+<div class="save-bar">
+  <span class="saved-msg" id="save-msg">All changes saved automatically</span>
+  <button class="btn-save" onclick="showView('report')">Preview Report →</button>
+</div>
+</div>
+
+<!-- ════════════════════════════════════════ REPORT VIEW -->
+<div class="view" id="view-report">
+<div class="report-page" id="report-content">
+  <!-- Rendered dynamically -->
+</div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════════════
+// DEFAULT DATA
+// ═══════════════════════════════════════════════════
+const DEFAULTS = {
+  reporter: "Jesmon",
+  weekCurr: "Mar 26 – Apr 2, 2026",
+  weekPrev: "Mar 19 – 26, 2026",
+  monthCurr: "March",
+  monthPrev: "February",
+  budget: [
+    { name:"IG LATAM Page Followers", daily:10 },
+    { name:"Retargeting – Indonesia", daily:50 },
+    { name:"Retargeting – Thailand", daily:50 },
+    { name:"Million Dollar Live – LATAM", daily:75 },
+    { name:"Million Dollar Live – Indonesia", daily:75 },
+    { name:"Million Dollar Live – Thailand", daily:75 },
+  ],
+  regions: [
+    { name:"Indonesia",   pSpend:393.62,pReg:8, pDep:2, pDeps:217.00,  cSpend:334.58,cReg:7, cDep:2, cDeps:184.45, paused:false },
+    { name:"Thailand",    pSpend:474.96,pReg:2, pDep:2, pDeps:170.00,  cSpend:403.72,cReg:2, cDep:2, cDeps:144.50, paused:false },
+    { name:"Philippines", pSpend:225.45,pReg:2, pDep:3, pDeps:37.25,   cSpend:0,     cReg:0, cDep:0, cDeps:0,      paused:true  },
+    { name:"LATAM",       pSpend:178.32,pReg:5, pDep:1, pDeps:25.00,   cSpend:0,     cReg:0, cDep:0, cDeps:0,      paused:true  },
+  ],
+  monthly: { regP:55,regC:85, accP:23,accC:43, depP:3129,depC:3380, outP:1197,outC:1267, netP:1932,netC:2113, lotP:46.99,lotC:48.28 },
+  ig: { s1:55,f1:221, s2:93.21,f2:685, s3:60,f3:382, start:1818, end:2200 },
+  projects: [
+    { icon:"📣", name:"Telegram Ads", status:"live", body:"Launched and running, but spend is low — the algorithm is still in its learning phase. Multiple new channels added this week. Expecting first performance data by end of week before deciding whether to scale up.\n\nWatching: cost per registration & deposit conversion rate.", note:"", urls:"", progress:"" },
+    { icon:"✉️", name:"Email Marketing", status:"testing", body:"Sent ~100 test emails from CRM data this week.\n\nOpen rate 32% · Click rate 5.5% · Spam rate <23%\n\nCurrently fixing: email provider selection, domain setup (SPF / DKIM / DMARC), email content, and audience segmentation.", note:"Spam rate is too high — the benchmark is under 5%. This needs to be verified before the next send. Will not scale up until delivery quality is stable.", urls:"", progress:"" },
+    { icon:"🔗", name:"Conversion Tracking (Postback)", status:"dev", body:"IT has delivered the full implementation roadmap. Development is now underway.", note:"", urls:"", progress:"done:Click ID capture logic confirmed\nwip:Data storage & postback mechanism — in progress\nwait:UAT testing — waiting to start" },
+    { icon:"🖥️", name:"Landing Pages & Creatives", status:"testing", body:"Using AI tools to produce landing pages quickly. First test pages are live and being paired with different ad creatives for A/B testing.", note:"", urls:"shark-app-b7kyl.ondigitalocean.app\nsquid-app-e9zwk.ondigitalocean.app", progress:"" },
+  ],
+  priorities: [
+    "Keep testing creative and landing page combinations to identify the highest-converting mix",
+    "Speed up the testing cycle — iterate faster on ad creatives to find winners sooner",
+    "Work closely with the Sales team to improve the registration-to-deposit conversion rate",
+    "Strengthen data monitoring across the full funnel — from registration through to deposit",
+  ],
+  goal: "Improve overall conversion efficiency and grow deposit volume month over month.",
+  landingPages: [
+    { name:"March Demo Trading 3", clicks:3248, ctr:2.9, bounceRate:70, avgTime:12, lpViews:2910, lpViewRate:89.6 }
+  ]
+};
+
+// ═══════════════════════════════════════════════════
+// STATE & PERSISTENCE
+// ═══════════════════════════════════════════════════
+let state = JSON.parse(JSON.stringify(DEFAULTS));
+
+function save() {
+  collectFromForm();
+  localStorage.setItem('wkrpt_state', JSON.stringify(state));
+  const msg = document.getElementById('save-msg');
+  msg.textContent = '✓ Saved at ' + new Date().toLocaleTimeString();
+  setTimeout(() => msg.textContent = 'All changes saved automatically', 3000);
+}
+
+function load() {
+  const stored = localStorage.getItem('wkrpt_state');
+  if (stored) { try { state = JSON.parse(stored); } catch(e) {} }
+}
+
+// ═══════════════════════════════════════════════════
+// FORM RENDERING
+// ═══════════════════════════════════════════════════
+function renderForm() {
+  document.getElementById('f-reporter').value  = state.reporter;
+  document.getElementById('f-week-curr').value = state.weekCurr;
+  document.getElementById('f-week-prev').value = state.weekPrev;
+  document.getElementById('f-month-curr').value= state.monthCurr;
+  document.getElementById('f-month-prev').value= state.monthPrev;
+
+  // Monthly
+  const m = state.monthly;
+  document.getElementById('m-reg-p').value=m.regP; document.getElementById('m-reg-c').value=m.regC;
+  document.getElementById('m-acc-p').value=m.accP; document.getElementById('m-acc-c').value=m.accC;
+  document.getElementById('m-dep-p').value=m.depP; document.getElementById('m-dep-c').value=m.depC;
+  document.getElementById('m-out-p').value=m.outP; document.getElementById('m-out-c').value=m.outC;
+  document.getElementById('m-net-p').value=m.netP; document.getElementById('m-net-c').value=m.netC;
+  document.getElementById('m-lot-p').value=m.lotP; document.getElementById('m-lot-c').value=m.lotC;
+
+  // IG
+  const ig = state.ig;
+  document.getElementById('ig-s1').value=ig.s1; document.getElementById('ig-f1').value=ig.f1;
+  document.getElementById('ig-s2').value=ig.s2; document.getElementById('ig-f2').value=ig.f2;
+  document.getElementById('ig-s3').value=ig.s3; document.getElementById('ig-f3').value=ig.f3;
+  document.getElementById('ig-start').value=ig.start; document.getElementById('ig-end').value=ig.end;
+
+  document.getElementById('f-goal').value = state.goal;
+
+  renderBudgetRows();
+  renderRegionRows();
+  renderLPRows();
+  renderProjectRows();
+  renderPriorityRows();
+}
+
+function renderBudgetRows() {
+  const tb = document.getElementById('budget-tbody');
+  tb.innerHTML = state.budget.map((b,i) => `
+    <tr>
+      <td><input type="text" value="${esc(b.name)}" onchange="state.budget[${i}].name=this.value;save()" placeholder="Campaign name"></td>
+      <td><input type="number" value="${b.daily}" step="1" onchange="state.budget[${i}].daily=+this.value;save()" style="max-width:100px"></td>
+      <td style="text-align:center"><button class="del-btn" onclick="state.budget.splice(${i},1);save();renderBudgetRows()">×</button></td>
+    </tr>`).join('');
+}
+
+function addBudgetRow() { state.budget.push({name:'',daily:0}); renderBudgetRows(); }
+
+function renderRegionRows() {
+  const tb = document.getElementById('regions-tbody');
+  tb.innerHTML = state.regions.map((r,i) => `
+    <tr>
+      <td><input type="text" value="${esc(r.name)}" onchange="state.regions[${i}].name=this.value;save()" placeholder="Region" style="max-width:110px"></td>
+      <td><input type="number" value="${r.pSpend}" step="0.01" onchange="state.regions[${i}].pSpend=+this.value;save()"></td>
+      <td><input type="number" value="${r.pReg}"   step="1"    onchange="state.regions[${i}].pReg=+this.value;save()"></td>
+      <td><input type="number" value="${r.pDep}"   step="1"    onchange="state.regions[${i}].pDep=+this.value;save()"></td>
+      <td><input type="number" value="${r.pDeps}"  step="0.01" onchange="state.regions[${i}].pDeps=+this.value;save()"></td>
+      <td><input type="number" value="${r.cSpend}" step="0.01" onchange="state.regions[${i}].cSpend=+this.value;save()" ${r.paused?'disabled style="opacity:0.3"':''}></td>
+      <td><input type="number" value="${r.cReg}"   step="1"    onchange="state.regions[${i}].cReg=+this.value;save()"   ${r.paused?'disabled style="opacity:0.3"':''}></td>
+      <td><input type="number" value="${r.cDep}"   step="1"    onchange="state.regions[${i}].cDep=+this.value;save()"   ${r.paused?'disabled style="opacity:0.3"':''}></td>
+      <td><input type="number" value="${r.cDeps}"  step="0.01" onchange="state.regions[${i}].cDeps=+this.value;save()"  ${r.paused?'disabled style="opacity:0.3"':''}></td>
+      <td class="paused-toggle"><label class="toggle"><input type="checkbox" ${r.paused?'checked':''} onchange="state.regions[${i}].paused=this.checked;save();renderRegionRows()"> Paused</label></td>
+      <td style="text-align:center"><button class="del-btn" onclick="state.regions.splice(${i},1);save();renderRegionRows()">×</button></td>
+    </tr>`).join('');
+}
+
+function addRegionRow() { state.regions.push({name:'',pSpend:0,pReg:0,pDep:0,pDeps:0,cSpend:0,cReg:0,cDep:0,cDeps:0,paused:false}); renderRegionRows(); }
+
+function renderLPRows() {
+  if (!state.landingPages) state.landingPages = [];
+  const el = document.getElementById('lp-list');
+  if (!el) return;
+  el.innerHTML = state.landingPages.length === 0
+    ? '<p style="font-size:13px;color:var(--faint);margin-bottom:12px;">No landing pages added yet.</p>'
+    : state.landingPages.map((lp,i) => `
+    <div class="proj-block" style="margin-bottom:10px;">
+      <div class="proj-block-head" style="margin-bottom:10px;">
+        <strong style="flex:1;"><input type="text" value="${esc(lp.name)}" onchange="state.landingPages[${i}].name=this.value;save()" placeholder="Landing page name" style="font-size:14px;font-weight:600;border:none;background:transparent;width:100%;outline:none;"></strong>
+        <button class="del-btn" onclick="state.landingPages.splice(${i},1);save();renderLPRows()">×</button>
+      </div>
+      <div class="field-row cols-3">
+        <div class="field"><label>Clicks</label><input type="number" value="${lp.clicks}" step="1" onchange="state.landingPages[${i}].clicks=+this.value;save()"></div>
+        <div class="field"><label>CTR (%)</label><input type="number" value="${lp.ctr}" step="0.1" onchange="state.landingPages[${i}].ctr=+this.value;save()"></div>
+        <div class="field"><label>Bounce Rate (%)</label><input type="number" value="${lp.bounceRate}" step="0.1" onchange="state.landingPages[${i}].bounceRate=+this.value;save()"></div>
+      </div>
+      <div class="field-row cols-3">
+        <div class="field"><label>Avg. Time on Page (sec)</label><input type="number" value="${lp.avgTime}" step="1" onchange="state.landingPages[${i}].avgTime=+this.value;save()"></div>
+        <div class="field"><label>Landing Page Views</label><input type="number" value="${lp.lpViews}" step="1" onchange="state.landingPages[${i}].lpViews=+this.value;save()"></div>
+        <div class="field"><label>LP View Rate (%)</label><input type="number" value="${lp.lpViewRate}" step="0.1" onchange="state.landingPages[${i}].lpViewRate=+this.value;save()"></div>
+      </div>
+    </div>`).join('');
+}
+
+function addLPRow() {
+  if (!state.landingPages) state.landingPages = [];
+  state.landingPages.push({name:'',clicks:0,ctr:0,bounceRate:0,avgTime:0,lpViews:0,lpViewRate:0});
+  renderLPRows();
+}
+
+function renderProjectRows() {
+  const el = document.getElementById('projects-list');
+  el.innerHTML = state.projects.map((p,i) => `
+    <div class="proj-block">
+      <div class="proj-block-head">
+        <input type="text" value="${esc(p.icon)}" onchange="state.projects[${i}].icon=this.value;save()" style="width:44px;text-align:center;font-size:18px;">
+        <strong><input type="text" value="${esc(p.name)}" onchange="state.projects[${i}].name=this.value;save()" placeholder="Project name" style="font-size:14px;font-weight:600;border:none;background:transparent;width:100%;outline:none;"></strong>
+        <select class="status-sel" onchange="state.projects[${i}].status=this.value;save()">
+          <option value="live"    ${p.status==='live'?'selected':''}>🟢 Live</option>
+          <option value="testing" ${p.status==='testing'?'selected':''}>🔵 Testing</option>
+          <option value="dev"     ${p.status==='dev'?'selected':''}>🟡 In Development</option>
+          <option value="paused"  ${p.status==='paused'?'selected':''}>⚫ Paused</option>
+        </select>
+        <button class="del-btn" onclick="state.projects.splice(${i},1);save();renderProjectRows()">×</button>
+      </div>
+      <div class="field"><label>Description</label><textarea onchange="state.projects[${i}].body=this.value;save()" placeholder="What happened this week?">${esc(p.body)}</textarea></div>
+      <div class="field"><label>Warning / Note (optional)</label><input type="text" value="${esc(p.note)}" onchange="state.projects[${i}].note=this.value;save()" placeholder="Leave blank if none"></div>
+      <div class="field"><label>Progress steps (optional) — format: done:text / wip:text / wait:text — one per line</label><textarea onchange="state.projects[${i}].progress=this.value;save()" placeholder="done:Step one complete&#10;wip:Step two in progress&#10;wait:Step three waiting" style="min-height:60px;">${esc(p.progress)}</textarea></div>
+      <div class="field"><label>URLs to show (optional) — one per line</label><textarea onchange="state.projects[${i}].urls=this.value;save()" placeholder="example.com" style="min-height:50px;">${esc(p.urls)}</textarea></div>
+    </div>`).join('');
+}
+
+function addProjectRow() { state.projects.push({icon:'🔷',name:'New Project',status:'testing',body:'',note:'',progress:'',urls:''}); renderProjectRows(); }
+
+function renderPriorityRows() {
+  const el = document.getElementById('priorities-list');
+  el.innerHTML = state.priorities.map((p,i) => `
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+      <span style="font-size:12px;color:var(--muted);min-width:20px;font-weight:600;">${String(i+1).padStart(2,'0')}</span>
+      <input type="text" value="${esc(p)}" onchange="state.priorities[${i}]=this.value;save()" placeholder="Priority..." style="flex:1;">
+      <button class="del-btn" onclick="state.priorities.splice(${i},1);save();renderPriorityRows()">×</button>
+    </div>`).join('');
+}
+
+function addPriorityRow() { state.priorities.push(''); renderPriorityRows(); }
+
+function collectFromForm() {
+  state.reporter  = v('f-reporter');
+  state.weekCurr  = v('f-week-curr');
+  state.weekPrev  = v('f-week-prev');
+  state.monthCurr = v('f-month-curr');
+  state.monthPrev = v('f-month-prev');
+  state.monthly = {
+    regP:+v('m-reg-p'),regC:+v('m-reg-c'),accP:+v('m-acc-p'),accC:+v('m-acc-c'),
+    depP:+v('m-dep-p'),depC:+v('m-dep-c'),outP:+v('m-out-p'),outC:+v('m-out-c'),
+    netP:+v('m-net-p'),netC:+v('m-net-c'),lotP:+v('m-lot-p'),lotC:+v('m-lot-c')
+  };
+  state.ig = {
+    s1:+v('ig-s1'),f1:+v('ig-f1'),s2:+v('ig-s2'),f2:+v('ig-f2'),
+    s3:+v('ig-s3'),f3:+v('ig-f3'),start:+v('ig-start'),end:+v('ig-end')
+  };
+  state.goal = v('f-goal');
+  // landingPages collected live via onchange — no extra collect needed
+}
+
+function v(id) { const el = document.getElementById(id); return el ? el.value : ''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/"/g,'&quot;'); }
+function pct(c,p) { if(!p) return 'N/A'; const v=((c-p)/p*100); return (v>=0?'▲ +':'▼ ')+Math.abs(v).toFixed(1)+'%'; }
+function isUp(c,p) { return c >= p; }
+function fmt(n,dec=2) { return Number(n).toLocaleString('en-US',{minimumFractionDigits:dec,maximumFractionDigits:dec}); }
+
+function toggleSection(el) {
+  const body = el.nextElementSibling;
+  const chev = el.querySelector('.fs-chevron');
+  body.classList.toggle('open');
+  chev.classList.toggle('open');
+}
+
+// ═══════════════════════════════════════════════════
+// REPORT RENDERING
+// ═══════════════════════════════════════════════════
+let charts = [];
+
+function renderReport() {
+  charts.forEach(c => c.destroy());
+  charts = [];
+  collectFromForm();
+
+  const s = state;
+  const m = s.monthly;
+  const ig = s.ig;
+
+  // Totals
+  const pTotals = s.regions.reduce((a,r)=>({spend:a.spend+r.pSpend,reg:a.reg+r.pReg,dep:a.dep+r.pDep,deps:a.deps+r.pDeps}),{spend:0,reg:0,dep:0,deps:0});
+  const cTotals = s.regions.filter(r=>!r.paused).reduce((a,r)=>({spend:a.spend+r.cSpend,reg:a.reg+r.cReg,dep:a.dep+r.cDep,deps:a.deps+r.cDeps}),{spend:0,reg:0,dep:0,deps:0});
+
+  const budgetTotal = s.budget.reduce((a,b)=>a+Number(b.daily),0);
+
+  // IG derived
+  const ig1cpf = ig.s1/ig.f1; const ig2cpf = ig.s2/ig.f2; const ig3cpf = ig.f3?ig.s3/ig.f3:0;
+
+  // Budget bar colours
+  const BAR_COLS = ['#d97706','#2563eb','#7c3aed','#d97706','#2563eb','#7c3aed'];
+
+  // Budget cards
+  const budgetCards = s.budget.map((b,i)=>{
+    const pct = budgetTotal ? Math.round((b.daily/budgetTotal)*100) : 0;
+    return `<div class="b-card">
+      <div class="b-name">${esc(b.name)}</div>
+      <div class="b-val">$${fmt(b.daily,0)}</div>
+      <div class="b-bar-track"><div class="b-bar-fill" style="width:${pct}%;background:${BAR_COLS[i%BAR_COLS.length]};"></div></div>
+      <div class="b-pct">${pct}% of total</div>
+    </div>`;
+  }).join('');
+
+  const bcols = Math.min(s.budget.length, 6);
+
+  // Region rows
+  const regionRows = s.regions.map(r => `
+    <tr>
+      <td>${esc(r.name)}</td>
+      <td class="col-div" style="border-left:2px solid var(--border)">${fmt(r.pSpend)}</td><td>${r.pReg}</td><td>${r.pDep}</td><td>${fmt(r.pDeps)}</td>
+      ${r.paused
+        ? `<td class="col-div paused-cell" colspan="4">Paused this week</td>`
+        : `<td class="col-div">${fmt(r.cSpend)}</td><td>${r.cReg}</td><td>${r.cDep}</td><td>${fmt(r.cDeps)}</td>`
+      }
+    </tr>`).join('');
+
+  // Monthly rows
+  const mRows = [
+    ['Registrations',      m.regP, m.regC, 0, true ],
+    ['Accounts opened',    m.accP, m.accC, 0, true ],
+    ['Total deposits ($)', m.depP, m.depC, 0, true ],
+    ['Withdrawals ($)',    m.outP, m.outC, 0, false],
+    ['Net deposits ($)',   m.netP, m.netC, 0, true ],
+    ['Trading volume (lot)',m.lotP,m.lotC, 3, true ],
+  ].map(([label,p,c,dec,goodUp])=>{
+    const pv = pct(c,p); const up = isUp(c,p);
+    const good = goodUp ? up : !up;
+    return `<tr><td>${label}</td><td>${fmt(p,dec)}</td><td>${fmt(c,dec)}</td><td><span class="badge ${good?'badge-up':'badge-dn'}">${pv}</span></td></tr>`;
+  }).join('');
+
+  // Projects
+  const projCards = s.projects.map(p=>{
+    const pillMap = {live:'pill-live',testing:'pill-testing',dev:'pill-dev',paused:'pill-paused'};
+    const lblMap  = {live:'Live',testing:'Testing',dev:'In development',paused:'Paused'};
+    const progLines = (p.progress||'').split('\n').filter(Boolean).map(line=>{
+      const [type,...rest] = line.split(':');
+      const dotClass = type==='done'?'dot-done':type==='wip'?'dot-wip':'dot-wait';
+      return `<div class="prog-row"><span class="dot ${dotClass}"></span>${esc(rest.join(':'))}</div>`;
+    }).join('');
+    const urlChips = (p.urls||'').split('\n').filter(Boolean).map(u=>`<span class="url-chip">${esc(u.trim())}</span>`).join('');
+    const bodyHtml = esc(p.body).replace(/\n\n/g,'</p><p class="proj-body" style="margin-top:8px;">').replace(/\n/g,'<br>');
+    return `<div class="proj-card">
+      <div class="proj-top">
+        <div class="proj-name">${p.icon} &nbsp;${esc(p.name)}</div>
+        <span class="pill ${pillMap[p.status]||'pill-testing'}">${lblMap[p.status]||p.status}</span>
+      </div>
+      <p class="proj-body">${bodyHtml}</p>
+      ${p.note ? `<div class="note">⚠️ &nbsp;${esc(p.note)}</div>`:''}
+      ${progLines ? `<div class="progress">${progLines}</div>`:''}
+      ${urlChips ? `<div style="margin-top:8px;">${urlChips}</div>`:''}
+    </div>`;
+  }).join('');
+
+  // Priorities
+  const prioItems = s.priorities.map((p,i)=>`
+    <div class="focus-item">
+      <span class="focus-num">${String(i+1).padStart(2,'0')}</span>
+      <span class="focus-text">${esc(p)}</span>
+    </div>`).join('');
+
+  document.getElementById('report-content').innerHTML = `
+    <div class="rpt-header">
+      <div>
+        <h1>Weekly Marketing Report</h1>
+        <div class="sub">${esc(s.weekCurr)} &nbsp;·&nbsp; Digital Marketing &amp; Paid Advertising</div>
+      </div>
+      <div class="meta">
+        <div>Prepared by <strong>${esc(s.reporter)}</strong></div>
+        <div>Compared against <strong>${esc(s.weekPrev)}</strong></div>
+      </div>
+    </div>
+
+    <!-- BUDGET -->
+    <div class="budget-box">
+      <div class="budget-top">
+        <div><div class="lbl">Budget Overview</div><div class="ttl">Daily Ads Budget Allocation</div></div>
+        <div><div class="t-label">Total daily budget</div><div class="t-val">$${fmt(budgetTotal,0)}</div></div>
+      </div>
+      <div class="budget-grid" style="grid-template-columns:repeat(${bcols},minmax(0,1fr));">${budgetCards}</div>
+    </div>
+
+    <!-- WEEKLY SNAPSHOT -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">This Week at a Glance</span><span class="s-note">Week-over-week vs ${esc(s.weekPrev)}</span></div>
+      <div class="kpi-grid">
+        ${kpiCard('Total ad spend','$'+fmt(cTotals.spend,0),pct(cTotals.spend,pTotals.spend),isUp(cTotals.spend,pTotals.spend),false,'Last week: $'+fmt(pTotals.spend,0))}
+        ${kpiCard('New registrations',cTotals.reg,pct(cTotals.reg,pTotals.reg),isUp(cTotals.reg,pTotals.reg),true,'Last week: '+pTotals.reg)}
+        ${kpiCard('Depositing users',cTotals.dep,pct(cTotals.dep,pTotals.dep),isUp(cTotals.dep,pTotals.dep),true,'Last week: '+pTotals.dep)}
+        ${kpiCard('Total deposits','$'+fmt(cTotals.deps,0),pct(cTotals.deps,pTotals.deps),isUp(cTotals.deps,pTotals.deps),true,'Last week: $'+fmt(pTotals.deps,0))}
+      </div>
+      <div class="insight">Numbers reflect active channels only. ${s.regions.filter(r=>r.paused).map(r=>r.name).join(' and ')} channels were paused this week — this accounts for the overall spend reduction.</div>
+    </div>
+
+    <!-- WEEKLY BY REGION -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">Week-over-Week by Region</span></div>
+      <div class="tbl-wrap">
+        <table class="rpt-table">
+          <thead>
+            <tr class="grp-hdr">
+              <th rowspan="2" style="text-align:left;background:#faf9f6;color:var(--muted);">Region</th>
+              <th colspan="4" style="text-align:center;">Last Week — ${esc(s.weekPrev)}</th>
+              <th colspan="4" class="dark2" style="text-align:center;">This Week — ${esc(s.weekCurr)}</th>
+            </tr>
+            <tr>
+              <th class="col-div" style="border-left:2px solid #555">Spend ($)</th><th>Reg.</th><th>Depositors</th><th>Deposits ($)</th>
+              <th class="col-div">Spend ($)</th><th>Reg.</th><th>Depositors</th><th>Deposits ($)</th>
+            </tr>
+          </thead>
           <tbody>
-            <tr><td>Registrations</td><td>55</td><td>85</td><td><span class="badge badge-up">+54.6%</span></td></tr>
-            <tr><td>Accounts opened</td><td>23</td><td>43</td><td><span class="badge badge-up">+87.0%</span></td></tr>
-            <tr><td>Total deposits ($)</td><td>3,129</td><td>3,380</td><td><span class="badge badge-up">+8.0%</span></td></tr>
-            <tr><td>Withdrawals ($)</td><td>1,197</td><td>1,267</td><td><span class="badge badge-down">+5.9%</span></td></tr>
-            <tr><td>Net deposits ($)</td><td>1,932</td><td>2,113</td><td><span class="badge badge-up">+9.4%</span></td></tr>
-            <tr><td>Trading volume (lot)</td><td>46.99</td><td>48.28</td><td><span class="badge badge-up">+2.8%</span></td></tr>
+            ${regionRows}
+            <tr class="total-row">
+              <td>Total</td>
+              <td class="col-div" style="border-left:2px solid var(--border)">${fmt(pTotals.spend)}</td><td>${pTotals.reg}</td><td>${pTotals.dep}</td><td>${fmt(pTotals.deps)}</td>
+              <td class="col-div">${fmt(cTotals.spend)}</td><td>${cTotals.reg}</td><td>${cTotals.dep}</td><td>${fmt(cTotals.deps)}</td>
+            </tr>
           </tbody>
         </table>
       </div>
-      <div class="chart-card">
-        <div class="chart-title">February vs March — key metrics</div>
-        <div class="chart-wrap"><canvas id="momChart"></canvas></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ══ SECTION 4: Project updates ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">Project updates</span>
-    </div>
-    <div class="projects-grid">
-
-      <div class="proj-card">
-        <div class="proj-top">
-          <div class="proj-name">📣 Telegram Ads</div>
-          <span class="pill pill-live">Live</span>
-        </div>
-        <div class="proj-body">
-          Launched and running, but spend is low — the algorithm is still in its learning phase. Multiple new channels added this week. Expecting first data by end of week before deciding whether to scale up.<br><br>
-          Watching: cost per registration &amp; deposit conversion rate.
-        </div>
-      </div>
-
-      <div class="proj-card">
-        <div class="proj-top">
-          <div class="proj-name">✉️ Email Marketing</div>
-          <span class="pill pill-testing">Testing</span>
-        </div>
-        <div class="proj-body">
-          Sent ~100 test emails from CRM data. Results so far:<br>
-          <span style="display:inline-block;margin-top:6px">Open rate <strong>32%</strong> &nbsp;·&nbsp; Click rate <strong>5.5%</strong> &nbsp;·&nbsp; Spam <strong>&lt;23%</strong></span>
-        </div>
-        <div class="proj-note">⚠️ Spam rate is too high — industry benchmark is &lt;5%. Verify this figure before the next send. Not scaling until delivery quality is stable.</div>
-        <div class="proj-body" style="margin-top:8px">Currently fixing: email provider, domain setup (SPF/DKIM/DMARC), content, and audience segmentation.</div>
-      </div>
-
-      <div class="proj-card">
-        <div class="proj-top">
-          <div class="proj-name">🔗 Conversion tracking (Postback)</div>
-          <span class="pill pill-dev">In dev</span>
-        </div>
-        <div class="proj-body">IT has delivered the full implementation roadmap. Development is underway.</div>
-        <div class="progress">
-          <div class="prog-row"><span class="dot dot-done"></span>Click ID capture logic — confirmed</div>
-          <div class="prog-row"><span class="dot dot-wip"></span>Data storage &amp; postback mechanism — in progress</div>
-          <div class="prog-row"><span class="dot dot-wait"></span>UAT testing — waiting</div>
-        </div>
-        <div class="proj-body" style="margin-top:8px">Once live: more accurate ad attribution → better optimisation decisions.</div>
-      </div>
-
-      <div class="proj-card">
-        <div class="proj-top">
-          <div class="proj-name">🖥️ Landing pages &amp; creatives</div>
-          <span class="pill pill-testing">Testing</span>
-        </div>
-        <div class="proj-body">
-          Using AI tools to produce landing pages quickly. First test pages are live and being paired with different ad creatives for A/B testing. Will keep producing new variations to find the best-converting combinations.
-        </div>
-        <div style="margin-top:10px">
-          <span class="url-chip">shark-app-b7kyl.ondigitalocean.app</span>
-          <span class="url-chip">squid-app-e9zwk.ondigitalocean.app</span>
-        </div>
-      </div>
-
-    </div>
-  </div>
-
-  <!-- ══ SECTION 5: LATAM IG Follower Campaign ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">LATAM — Instagram Follower Growth Campaign</span>
-      <span class="section-note">3-week trend</span>
-    </div>
-
-    <div class="kpi-row" style="grid-template-columns:repeat(4,minmax(0,1fr)); margin-bottom:16px;">
-      <div class="kpi-card">
-        <div class="kpi-name">This week spend</div>
-        <div class="kpi-val">$60</div>
-        <div class="kpi-chg up">▼ -35.6% vs last week</div>
-        <div class="kpi-sub">was $93.21 last week</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Followers gained</div>
-        <div class="kpi-val">382</div>
-        <div class="kpi-chg down">▼ -44.2% vs last week</div>
-        <div class="kpi-sub">was 685 last week</div>
-      </div>
-      <div class="kpi-card">
-        <div class="kpi-name">Cost per follower</div>
-        <div class="kpi-val">$0.16</div>
-        <div class="kpi-chg down">▲ +14.3% vs last week</div>
-        <div class="kpi-sub">was $0.14 last week</div>
-      </div>
-      <div class="kpi-card" style="background:#fafaf8;">
-        <div class="kpi-name">Total followers (account)</div>
-        <div class="kpi-val">2,200</div>
-        <div class="kpi-sub" style="margin-top:4px">grew from 1,818 → 2,200 this week</div>
+      <div class="two-col">
+        <div class="chart-card"><div class="chart-title">Ad spend by region ($)</div><div class="chart-wrap"><canvas id="spendChart"></canvas></div></div>
+        <div class="chart-card"><div class="chart-title">Registrations by region</div><div class="chart-wrap"><canvas id="regChart"></canvas></div></div>
       </div>
     </div>
 
-    <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
-      <div>
-        <div class="cmp-table-wrap">
-          <table class="cmp-table">
-            <thead>
-              <tr>
-                <th>Metric</th>
-                <th>Week 1</th>
-                <th>Week 2</th>
-                <th>This week</th>
-              </tr>
-            </thead>
+    <!-- MONTHLY -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">${esc(s.monthCurr)} Monthly Summary</span><span class="s-note">vs ${esc(s.monthPrev)}</span></div>
+      <div class="kpi-grid">
+        ${kpiCard('Registrations',m.regC,pct(m.regC,m.regP),true,true,'Last month: '+m.regP)}
+        ${kpiCard('Accounts opened',m.accC,pct(m.accC,m.accP),true,true,'Last month: '+m.accP)}
+        ${kpiCard('Net deposits','$'+fmt(m.netC,0),pct(m.netC,m.netP),true,true,'Last month: $'+fmt(m.netP,0))}
+        ${kpiCard('Trading volume',fmt(m.lotC,1)+' lot',pct(m.lotC,m.lotP),true,true,'Last month: '+m.lotP)}
+      </div>
+      <div class="two-col">
+        <div class="tbl-wrap" style="margin-bottom:0;">
+          <table class="rpt-table">
+            <thead><tr><th>Metric</th><th>${esc(s.monthPrev)}</th><th>${esc(s.monthCurr)}</th><th>Change</th></tr></thead>
+            <tbody>${mRows}</tbody>
+          </table>
+        </div>
+        <div class="chart-card"><div class="chart-title">${esc(s.monthPrev)} vs ${esc(s.monthCurr)} — key metrics</div><div class="chart-wrap"><canvas id="momChart"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- IG CAMPAIGN -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">LATAM — Instagram Follower Growth</span><span class="s-note">3-week trend</span></div>
+      <div class="kpi-grid">
+        ${kpiCard('This week spend','$'+fmt(ig.s3,0),pct(ig.s3,ig.s2),isUp(ig.s3,ig.s2),false,'Last week: $'+fmt(ig.s2,0))}
+        ${kpiCard('Followers gained',ig.f3,pct(ig.f3,ig.f2),isUp(ig.f3,ig.f2),true,'Last week: '+ig.f2)}
+        ${kpiCard('Cost per follower','$'+fmt(ig3cpf,2),pct(ig3cpf,ig2cpf),isUp(ig3cpf,ig2cpf),false,'Last week: $'+fmt(ig2cpf,2))}
+        ${kpiCard('Account total followers',Number(ig.end).toLocaleString(),'▲ +'+ig.f3+' this week',true,true,'Started week at '+Number(ig.start).toLocaleString(),'up')}
+      </div>
+      <div class="two-col" style="margin-top:16px;">
+        <div class="tbl-wrap" style="margin-bottom:0;">
+          <table class="rpt-table">
+            <thead><tr><th>Metric</th><th>Week 1</th><th>Week 2</th><th>This week</th></tr></thead>
             <tbody>
-              <tr>
-                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Spend ($)</td>
-                <td>55.00</td>
-                <td>93.21</td>
-                <td style="font-weight:500">60.00</td>
-              </tr>
-              <tr>
-                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Followers gained</td>
-                <td>221</td>
-                <td>685</td>
-                <td style="font-weight:500">382</td>
-              </tr>
-              <tr>
-                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Cost per follower ($)</td>
-                <td>0.25</td>
-                <td>0.14</td>
-                <td style="font-weight:500">0.16</td>
-              </tr>
-              <tr>
-                <td style="text-align:left;font-family:'DM Sans',sans-serif;font-weight:500;font-size:13px;">Account followers (total)</td>
-                <td>—</td>
-                <td>1,818</td>
-                <td style="font-weight:500">2,200</td>
-              </tr>
+              <tr><td>Spend ($)</td><td>${fmt(ig.s1)}</td><td>${fmt(ig.s2)}</td><td><strong>${fmt(ig.s3)}</strong></td></tr>
+              <tr><td>Followers gained</td><td>${ig.f1}</td><td>${ig.f2}</td><td><strong>${ig.f3}</strong></td></tr>
+              <tr><td>Cost per follower ($)</td><td>${fmt(ig1cpf,2)}</td><td>${fmt(ig2cpf,2)}</td><td><strong>${fmt(ig3cpf,2)}</strong></td></tr>
+              <tr class="total-row"><td>Account total</td><td>—</td><td>${Number(ig.start).toLocaleString()}</td><td>${Number(ig.end).toLocaleString()}</td></tr>
             </tbody>
           </table>
         </div>
-        <div class="insight" style="margin-top:10px;">
-          Week 2 was the strongest week — 685 followers at just $0.14 each. This week pulled back on spend and gained 382 followers at $0.16/follower, still better than Week 1. The account has grown from under 1,818 to <strong>2,200 followers</strong> over the past 3 weeks.
+        <div class="chart-card"><div class="chart-title">Followers gained &amp; cost per follower — 3-week trend</div><div class="chart-wrap"><canvas id="igChart"></canvas></div></div>
+      </div>
+    </div>
+
+    ${(s.landingPages && s.landingPages.length > 0) ? `
+    <!-- LANDING PAGES -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">Landing Page Performance</span><span class="s-note">Ad click quality analysis</span></div>
+      ${s.landingPages.map(lp => {
+        const engaged    = Math.round(lp.lpViews * (1 - lp.bounceRate/100));
+        const dropped    = lp.clicks - lp.lpViews;
+        const bounced    = lp.lpViews - engaged;
+        const timeGood   = lp.avgTime >= 60;
+        const bounceGood = lp.bounceRate < 50;
+        const timeMin    = Math.floor(lp.avgTime/60);
+        const timeSec    = lp.avgTime % 60;
+        const timeLabel  = timeMin > 0 ? timeMin+'m '+timeSec+'s' : timeSec+'s';
+        const funnel     = [
+          { label:'Clicked ad', n: lp.clicks, pct:100, col:'#374151' },
+          { label:'Loaded page', n: lp.lpViews, pct: Math.round(lp.lpViewRate), col:'#374151' },
+          { label:'Stayed & engaged', n: engaged, pct: Math.round((engaged/lp.clicks)*100), col: bounceGood?'#166534':'#991b1b' },
+        ];
+        return `
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:16px;">
+          <div style="font-size:16px;font-weight:600;margin-bottom:20px;">📄 &nbsp;${esc(lp.name)}</div>
+
+          <div class="kpi-grid" style="grid-template-columns:repeat(6,minmax(0,1fr));margin-bottom:24px;">
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">Clicks</div>
+              <div class="kpi-value" style="font-size:26px;">${Number(lp.clicks).toLocaleString()}</div>
+              <div class="kpi-prev">From ad impressions</div>
+            </div>
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">CTR</div>
+              <div class="kpi-value" style="font-size:26px;">${lp.ctr}%</div>
+              <div class="kpi-prev">Of impressions clicked</div>
+            </div>
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">Page views</div>
+              <div class="kpi-value" style="font-size:26px;">${Number(lp.lpViews).toLocaleString()}</div>
+              <div class="kpi-prev">${lp.lpViewRate}% of clicks loaded</div>
+            </div>
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">Bounce rate</div>
+              <div class="kpi-value ${bounceGood?'up':'dn'}" style="font-size:26px;">${lp.bounceRate}%</div>
+              <div class="kpi-prev">${bounceGood?'Below 50% — decent':'Above 50% — needs work'}</div>
+            </div>
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">Avg. time on page</div>
+              <div class="kpi-value ${timeGood?'up':'dn'}" style="font-size:26px;">${timeLabel}</div>
+              <div class="kpi-prev">${timeGood?'Good engagement':'Very low — flag'}</div>
+            </div>
+            <div class="kpi" style="padding:14px 16px;">
+              <div class="kpi-label">Stayed &amp; engaged</div>
+              <div class="kpi-value" style="font-size:26px;">${Number(engaged).toLocaleString()}</div>
+              <div class="kpi-prev">${Math.round((engaged/lp.clicks)*100)}% of all clicks</div>
+            </div>
+          </div>
+
+          <div style="margin-bottom:20px;">
+            <div style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Visitor funnel</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${funnel.map((f,fi) => `
+              <div style="display:flex;align-items:center;gap:14px;">
+                <div style="font-size:13px;color:var(--sub);width:130px;flex-shrink:0;">${f.label}</div>
+                <div style="flex:1;background:var(--border);border-radius:4px;height:28px;overflow:hidden;">
+                  <div style="height:100%;width:${f.pct}%;background:${f.col};border-radius:4px;display:flex;align-items:center;padding:0 10px;transition:width 0.4s;">
+                    <span style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;">${Number(f.n).toLocaleString()}</span>
+                  </div>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:var(--sub);width:36px;text-align:right;">${f.pct}%</div>
+              </div>`).join('')}
+              <div style="display:flex;align-items:center;gap:14px;opacity:0.6;">
+                <div style="font-size:13px;color:var(--dn);width:130px;flex-shrink:0;">⚠ Left immediately</div>
+                <div style="flex:1;background:var(--dn-bg);border:1px solid var(--dn-bd);border-radius:4px;height:28px;display:flex;align-items:center;padding:0 10px;">
+                  <span style="font-size:12px;font-weight:600;color:var(--dn);">${Number(bounced).toLocaleString()} bounced &nbsp;+&nbsp; ${Number(dropped).toLocaleString()} never loaded</span>
+                </div>
+                <div style="font-size:13px;font-weight:600;color:var(--dn);width:36px;text-align:right;">${Math.round(((bounced+dropped)/lp.clicks)*100)}%</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="${(!bounceGood || !timeGood) ? 'note' : 'insight'}" style="margin-top:0;">
+            ${(!bounceGood && !timeGood)
+              ? '⚠️ &nbsp;<strong>Both bounce rate ('+lp.bounceRate+'%) and average time on page ('+timeLabel+') are concerning.</strong> '+Number(bounced).toLocaleString()+' visitors left within seconds of arriving. The page content, load speed, or relevance to the ad creative likely needs improvement. Priority: redesign or A/B test a new version.'
+              : !bounceGood
+              ? '⚠️ &nbsp;<strong>Bounce rate of '+lp.bounceRate+'% is above the 50% benchmark.</strong> Visitors are arriving but leaving without engaging — check whether the page matches what the ad is promising.'
+              : !timeGood
+              ? '⚠️ &nbsp;<strong>Average time on page is only '+timeLabel+'.</strong> Even visitors who did not immediately bounce are spending very little time reading — consider simplifying the page and making the call-to-action more prominent.'
+              : '✅ &nbsp;Bounce rate and time on page are within acceptable ranges. '+Number(engaged).toLocaleString()+' visitors ('+Math.round((engaged/lp.clicks)*100)+'% of clicks) engaged meaningfully with the page.'
+            }
+          </div>
+        </div>`;
+      }).join('')}
+    </div>` : ''}
+
+    <!-- PROJECTS -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">Project Updates</span></div>
+      <div class="proj-grid">${projCards}</div>
+    </div>
+
+    <!-- PRIORITIES -->
+    <div class="section">
+      <div class="s-header"><span class="s-title">This Month's Priorities</span></div>
+      <div class="focus-list">
+        ${prioItems}
+        <div class="focus-item">
+          <span class="focus-num" style="color:var(--text);">→</span>
+          <span class="focus-text" style="font-weight:600;">Goal: ${esc(s.goal)}</span>
         </div>
       </div>
-
-      <div class="chart-card">
-        <div class="chart-title">Followers gained &amp; cost per follower — 3-week trend</div>
-        <div class="chart-wrap" style="height:200px;"><canvas id="igChart"></canvas></div>
-      </div>
     </div>
-  </div>
+  `;
 
-  <!-- ══ SECTION 6: Monthly priorities ══ -->
-  <div class="section">
-    <div class="section-header">
-      <span class="section-label">This month's priorities</span>
-    </div>
-    <div class="focus-list">
-      <div class="focus-item">
-        <span class="focus-num">01</span>
-        <span class="focus-text">Keep testing creative + landing page combinations to find what converts best</span>
-      </div>
-      <div class="focus-item">
-        <span class="focus-num">02</span>
-        <span class="focus-text">Speed up the testing cycle — iterate faster on ad creatives</span>
-      </div>
-      <div class="focus-item">
-        <span class="focus-num">03</span>
-        <span class="focus-text">Work closely with the Sales team to improve registration-to-deposit conversion</span>
-      </div>
-      <div class="focus-item">
-        <span class="focus-num">04</span>
-        <span class="focus-text">Tighten data monitoring across the full funnel — registration → deposit</span>
-      </div>
-      <div class="focus-item" style="background:#fafaf8">
-        <span class="focus-num" style="color:var(--text)">→</span>
-        <span class="focus-text" style="font-weight:500">Goal: improve overall conversion efficiency and grow deposit volume month over month.</span>
-      </div>
-    </div>
-  </div>
+  // Charts
+  const GRAY='#c8c5bc', DARK='#374151';
+  const AX = { ticks:{color:'#9b9890',font:{size:12,family:'Inter'}}, grid:{color:'rgba(0,0,0,0.05)'} };
+  const LG = { display:true, position:'top', align:'start', labels:{color:'#6b6860',font:{size:12,family:'Inter'},boxWidth:11,boxHeight:11,padding:16} };
 
-</div><!-- /page -->
-
-<script>
-  const PREV_COLOR  = '#d1d5db';
-  const CURR_COLOR  = '#374151';
-  const REGION_COLORS = ['#3b82f6','#8b5cf6','#10b981','#f59e0b'];
-  const AXIS = { ticks: { color:'#9ca3af', font:{ size:11, family:'DM Sans' } }, grid: { color:'rgba(0,0,0,0.06)' } };
-  const LEGEND_OPTS = { display:true, position:'top', align:'start', labels: { color:'#6b7280', font:{ size:11, family:'DM Sans' }, boxWidth:10, boxHeight:10, padding:14 } };
-
-  // Spend chart
-  new Chart(document.getElementById('spendChart'), {
+  const rLabels = s.regions.map(r=>r.name);
+  charts.push(new Chart(document.getElementById('spendChart'),{
     type:'bar',
-    data: {
-      labels: ['Indonesia','Thailand','Philippines','LATAM'],
-      datasets: [
-        { label:'Week 1 (Mar 19–26)', data:[393.62,474.96,225.45,178.32], backgroundColor:PREV_COLOR, borderRadius:3 },
-        { label:'Week 2 (Mar 26–Apr 2)', data:[334.58,403.72,0,0], backgroundColor:CURR_COLOR, borderRadius:3 },
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend: LEGEND_OPTS, tooltip: { callbacks: { label: c => ' $'+c.parsed.y.toFixed(2) } } },
-      scales: { x:{...AXIS, ticks:{...AXIS.ticks,maxRotation:30}}, y:{...AXIS,beginAtZero:true} }
-    }
-  });
+    data:{ labels:rLabels, datasets:[
+      {label:'Last week', data:s.regions.map(r=>r.pSpend), backgroundColor:GRAY, borderRadius:4},
+      {label:'This week', data:s.regions.map(r=>r.paused?0:r.cSpend), backgroundColor:DARK, borderRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG,tooltip:{callbacks:{label:c=>' $'+c.parsed.y.toFixed(2)}}},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}
+  }));
 
-  // Registrations chart
-  new Chart(document.getElementById('regChart'), {
+  charts.push(new Chart(document.getElementById('regChart'),{
     type:'bar',
-    data: {
-      labels: ['Indonesia','Thailand','Philippines','LATAM'],
-      datasets: [
-        { label:'Week 1 (Mar 19–26)', data:[8,2,2,5], backgroundColor:PREV_COLOR, borderRadius:3 },
-        { label:'Week 2 (Mar 26–Apr 2)', data:[7,2,0,0], backgroundColor:CURR_COLOR, borderRadius:3 },
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend: LEGEND_OPTS },
-      scales: { x:{...AXIS, ticks:{...AXIS.ticks,maxRotation:30}}, y:{...AXIS,beginAtZero:true,ticks:{...AXIS.ticks,stepSize:2}} }
-    }
-  });
+    data:{ labels:rLabels, datasets:[
+      {label:'Last week', data:s.regions.map(r=>r.pReg), backgroundColor:GRAY, borderRadius:4},
+      {label:'This week', data:s.regions.map(r=>r.paused?0:r.cReg), backgroundColor:DARK, borderRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}
+  }));
 
-  // IG Follower chart — 3-week trend, dual axis
-  new Chart(document.getElementById('igChart'), {
-    data: {
-      labels: ['Week 1', 'Week 2', 'This week'],
-      datasets: [
-        { type:'bar', label:'Followers gained', data:[221,685,382], backgroundColor:['#d1d5db','#374151','#6b7280'], borderRadius:4, yAxisID:'y' },
-        { type:'line', label:'Cost per follower ($)', data:[0.25,0.14,0.16], borderColor:'#f59e0b', backgroundColor:'rgba(245,158,11,0.08)', pointBackgroundColor:'#f59e0b', pointRadius:5, borderWidth:2, tension:0.3, yAxisID:'y2' },
-      ]
-    },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend: LEGEND_OPTS },
-      scales: {
-        x: { ...AXIS },
-        y:  { ...AXIS, beginAtZero:true, position:'left',  title:{ display:true, text:'Followers gained', color:'#9ca3af', font:{size:10} } },
-        y2: { ...AXIS, beginAtZero:false, position:'right', title:{ display:true, text:'$/follower', color:'#9ca3af', font:{size:10} }, grid:{drawOnChartArea:false}, min:0.10, max:0.30 }
-      }
-    }
-  });
-
-  // MoM chart
-  new Chart(document.getElementById('momChart'), {
+  charts.push(new Chart(document.getElementById('momChart'),{
     type:'bar',
-    data: {
-      labels:['Registrations','Accounts','Net dep. ($00s)'],
-      datasets: [
-        { label:'February', data:[55,23,19.3], backgroundColor:PREV_COLOR, borderRadius:3 },
-        { label:'March',    data:[85,43,21.1], backgroundColor:CURR_COLOR, borderRadius:3 },
+    data:{ labels:['Registrations','Accounts','Net dep. ($00s)'], datasets:[
+      {label:s.monthPrev, data:[m.regP,m.accP,+(m.netP/100).toFixed(1)], backgroundColor:GRAY, borderRadius:4},
+      {label:s.monthCurr, data:[m.regC,m.accC,+(m.netC/100).toFixed(1)], backgroundColor:DARK, borderRadius:4},
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX},y:{...AX,beginAtZero:true}}}
+  }));
+
+  charts.push(new Chart(document.getElementById('igChart'),{
+    data:{
+      labels:['Week 1','Week 2','This week'],
+      datasets:[
+        {type:'bar', label:'Followers gained', data:[ig.f1,ig.f2,ig.f3], backgroundColor:[GRAY,DARK,'#6b7280'], borderRadius:4, yAxisID:'y'},
+        {type:'line', label:'Cost/follower ($)', data:[ig1cpf,ig2cpf,ig3cpf], borderColor:'#d97706', backgroundColor:'rgba(217,119,6,0.06)', pointBackgroundColor:'#d97706', pointRadius:6, borderWidth:2.5, tension:0.3, yAxisID:'y2'},
       ]
     },
-    options: {
-      responsive:true, maintainAspectRatio:false,
-      plugins: { legend: LEGEND_OPTS },
-      scales: { x:{...AXIS}, y:{...AXIS,beginAtZero:true} }
-    }
-  });
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{
+      x:{...AX},
+      y:{...AX,beginAtZero:true,position:'left',title:{display:true,text:'Followers',color:'#9b9890',font:{size:11}}},
+      y2:{...AX,position:'right',title:{display:true,text:'$/follower',color:'#9b9890',font:{size:11}},grid:{drawOnChartArea:false},min:0}
+    }}
+  }));
+}
+
+function kpiCard(label, value, change, isup, goodWhenUp, prev, forceClass) {
+  const goodUp = goodWhenUp !== false;
+  const cls = forceClass === 'up' ? 'up' : (goodUp ? (isup?'up':'dn') : (isup?'dn':'up'));
+  return `<div class="kpi">
+    <div class="kpi-label">${label}</div>
+    <div class="kpi-value">${value}</div>
+    <div class="kpi-change ${cls}">${change}</div>
+    <div class="kpi-prev">${prev}</div>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════════════
+function showView(which) {
+  document.getElementById('view-edit').classList.toggle('active', which==='edit');
+  document.getElementById('view-report').classList.toggle('active', which==='report');
+  document.getElementById('btn-edit').className   = 'btn ' + (which==='edit'?'btn-active':'btn-ghost');
+  document.getElementById('btn-report').className = 'btn ' + (which==='report'?'btn-active':'btn-ghost');
+  if (which==='report') { save(); renderReport(); }
+}
+
+// ═══════════════════════════════════════════════════
+// AUTO-SAVE ON INPUT
+// ═══════════════════════════════════════════════════
+document.addEventListener('change', function(e) {
+  if (e.target.closest('#view-edit')) save();
+});
+document.addEventListener('input', function(e) {
+  if (e.target.closest('#view-edit')) {
+    clearTimeout(window._saveTimer);
+    window._saveTimer = setTimeout(save, 800);
+  }
+});
+
+// INIT
+load();
+renderForm();
 </script>
 </body>
 </html>
