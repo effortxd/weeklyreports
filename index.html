@@ -216,6 +216,7 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
     <button class="btn btn-ghost"   id="btn-report" onclick="showView('report')">👁 &nbsp;Preview</button>
     <button class="btn btn-dim"     id="btn-word" onclick="exportWord()">⬇️ &nbsp;Export Word</button>
     <button class="btn btn-dim"     onclick="window.print()">🖨 &nbsp;Print / PDF</button>
+    <button class="btn btn-dim"     onclick="loadSample()">📋 &nbsp;Load Sample</button>
     <button class="btn btn-warn"    onclick="clearAll()">🗑 &nbsp;Clear All</button>
   </div>
 </nav>
@@ -416,6 +417,82 @@ const BLANK = {
   goal:''
 };
 
+const SAMPLE = {
+  reporter:'Jesmon',
+  weekC:'Mar 26 – Apr 2, 2026',
+  weekP:'Mar 19 – 26, 2026',
+  monthC:'March',
+  monthP:'February',
+  igTitle:'LATAM Instagram Follower Growth Campaign',
+  lpTitle:'Landing Page Insights',
+  projTitle:'Project Updates',
+  ctTitle:'Additional Updates',
+  prioTitle:"This Month's Priorities",
+  budget:[
+    { name:'IG LATAM Page Followers',          daily:10  },
+    { name:'Retargeting – Indonesia',           daily:50  },
+    { name:'Retargeting – Thailand',            daily:50  },
+    { name:'Million Dollar Live – LATAM',       daily:75  },
+    { name:'Million Dollar Live – Indonesia',   daily:75  },
+    { name:'Million Dollar Live – Thailand',    daily:75  },
+  ],
+  regions:[
+    { name:'Indonesia',   pSpend:393.62, pReg:8, pDep:2, pDeps:217.00, cSpend:334.58, cReg:7, cDep:2, cDeps:184.45, paused:false },
+    { name:'Thailand',    pSpend:474.96, pReg:2, pDep:2, pDeps:170.00, cSpend:403.72, cReg:2, cDep:2, cDeps:144.50, paused:false },
+    { name:'Philippines', pSpend:225.45, pReg:2, pDep:3, pDeps:37.25,  cSpend:0,      cReg:0, cDep:0, cDeps:0,      paused:true  },
+    { name:'LATAM',       pSpend:178.32, pReg:5, pDep:1, pDeps:25.00,  cSpend:0,      cReg:0, cDep:0, cDeps:0,      paused:true  },
+  ],
+  monthly:{ regP:55, regC:85, accP:23, accC:43, depP:3129, depC:3380, outP:1197, outC:1267, netP:1932, netC:2113, lotP:46.99, lotC:48.28 },
+  ig:{ s1:55, f1:221, s2:93.21, f2:685, s3:60, f3:382, start:1818, end:2200 },
+  landingPages:[
+    { name:'March Demo Trading 3', clicks:3248, ctr:2.9, bounceRate:70, avgTime:12, lpViews:2910, lpViewRate:89.6 }
+  ],
+  customTables:[
+    {
+      title:'Email Marketing – Test Results',
+      headers:['Metric','Result','Benchmark','Status'],
+      rows:[
+        ['Open Rate',    '32%',  '> 25%', '✓ Good'],
+        ['Click Rate',   '5.5%', '> 3%',  '✓ Good'],
+        ['Spam Rate',    '< 23%','< 0.5%','⚠ Verify — too high'],
+        ['Emails Sent',  '~100', '—',     'Test batch only'],
+      ]
+    }
+  ],
+  projects:[
+    {
+      icon:'📣', name:'Telegram Ads', status:'live',
+      body:'Launched and running, but spend is low — the algorithm is still in its learning phase. Multiple new channels added this week. Expecting first performance data by end of week before deciding whether to scale up.\n\nWatching: cost per registration & deposit conversion rate.',
+      note:'', urls:'', progress:''
+    },
+    {
+      icon:'✉️', name:'Email Marketing', status:'testing',
+      body:'Sent ~100 test emails from CRM data this week. Open rate 32% · Click rate 5.5% · Spam rate <23%.\n\nCurrently fixing: email provider selection, domain setup (SPF / DKIM / DMARC), email content, and audience segmentation.',
+      note:'Spam rate is too high — the benchmark is under 0.5%. This needs to be verified before the next send. Will not scale up until delivery quality is stable.',
+      urls:'', progress:''
+    },
+    {
+      icon:'🔗', name:'Conversion Tracking (Postback)', status:'dev',
+      body:'IT has delivered the full implementation roadmap. Development is now underway.',
+      note:'', urls:'',
+      progress:'done:Click ID capture logic — confirmed\nwip:Data storage & postback mechanism — in progress\nwait:UAT testing — waiting to start'
+    },
+    {
+      icon:'🖥️', name:'Landing Pages & Creatives', status:'testing',
+      body:'Using AI tools to produce landing pages quickly. First test pages are live and being paired with different ad creatives for A/B testing. Will continue producing new variations to find the best-converting combinations.',
+      note:'', progress:'',
+      urls:'shark-app-b7kyl.ondigitalocean.app\nsquid-app-e9zwk.ondigitalocean.app'
+    },
+  ],
+  priorities:[
+    'Keep testing creative and landing page combinations to identify the highest-converting mix',
+    'Speed up the testing cycle — iterate faster on ad creatives to find winners sooner',
+    'Work closely with the Sales team to improve the registration-to-deposit conversion rate',
+    'Strengthen data monitoring across the full funnel — from registration through to deposit',
+  ],
+  goal:'Improve overall conversion efficiency and grow deposit volume month over month.'
+};
+
 let S = JSON.parse(JSON.stringify(BLANK));
 
 // ═══════════════════════════════
@@ -433,13 +510,21 @@ function save() {
 
 function loadState() {
   const raw = localStorage.getItem('wkrpt2');
-  if (raw) { try { S = {...BLANK, ...JSON.parse(raw)}; } catch(e){} }
+  if (raw) { try { S = {...BLANK, ...JSON.parse(raw)}; return; } catch(e){} }
+  S = JSON.parse(JSON.stringify(SAMPLE));
 }
 
 function clearAll() {
-  if (!confirm('Clear all data and start fresh?')) return;
+  if (!confirm('Clear all data and start with a blank form?')) return;
   localStorage.removeItem('wkrpt2');
   S = JSON.parse(JSON.stringify(BLANK));
+  renderForm();
+}
+
+function loadSample() {
+  if (!confirm('Replace current data with the sample report?')) return;
+  S = JSON.parse(JSON.stringify(SAMPLE));
+  localStorage.setItem('wkrpt2', JSON.stringify(S));
   renderForm();
 }
 
