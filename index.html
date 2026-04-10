@@ -217,6 +217,9 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
     <button class="btn btn-dim"     id="btn-word" onclick="exportWord()">⬇️ &nbsp;Export Word</button>
     <button class="btn btn-dim"     onclick="window.print()">🖨 &nbsp;Print / PDF</button>
     <button class="btn btn-dim"     onclick="loadSample()">📋 &nbsp;Load Sample</button>
+    <button class="btn btn-ghost"   onclick="saveFile()" title="Export data as JSON to share with colleagues">💾 &nbsp;Save File</button>
+    <button class="btn btn-ghost"   onclick="document.getElementById('load-input').click()" title="Import a JSON file from a colleague">📂 &nbsp;Load File</button>
+    <input type="file" id="load-input" accept=".json" style="display:none" onchange="loadFile(this)">
     <button class="btn btn-warn"    onclick="clearAll()">🗑 &nbsp;Clear All</button>
   </div>
 </nav>
@@ -1452,6 +1455,44 @@ function showView(v) {
 // Auto-save on any input
 document.addEventListener('input',  e=>{ if(e.target.closest('#view-edit')){ clearTimeout(window._at); window._at=setTimeout(save,700); }});
 document.addEventListener('change', e=>{ if(e.target.closest('#view-edit')) save(); });
+
+
+// ═══════════════════════════════
+// FILE SAVE / LOAD (for sharing)
+// ═══════════════════════════════
+function saveFile() {
+  collect();
+  const data = JSON.stringify(S, null, 2);
+  const blob = new Blob([data], { type: 'application/json' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  const week = (S.weekC || 'report').replace(/[^a-z0-9]/gi, '_');
+  a.href     = url;
+  a.download = 'report_data_' + week + '.json';
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function loadFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const parsed = JSON.parse(e.target.result);
+      S = { ...BLANK, ...parsed };
+      localStorage.setItem('wkrpt2', JSON.stringify(S));
+      renderForm();
+      const msg = document.getElementById('save-msg');
+      msg.textContent = '✓ Loaded from ' + file.name;
+      setTimeout(() => msg.textContent = 'All changes saved automatically', 3000);
+    } catch(err) {
+      alert('Could not read file — make sure it is a valid report JSON.');
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
 
 // INIT
 loadState();
