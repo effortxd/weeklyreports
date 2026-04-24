@@ -1177,36 +1177,83 @@ function _buildDocx() {
     </w:tr>
   </w:tbl>`;
 
-  // ── Region comparison table ─────────────────────────────
-  const rW=[800,830,700,700,710,830,700,700,790];
-  const regionTableXml = `
-  <w:tbl>${tblProps(W)}<w:tblGrid>${rW.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+  // ── Region Table 1: Weekly spend trend ──────────────────
+  // wLabels and wTots already computed above
+  const spW = [1200, 1040, 1040, 1040, 1040, 2000]; // region + 4 weeks + monthly total = 7360, pad to 9360
+  const spW2 = [1600, 1190, 1190, 1190, 1190, 3000]; // sum=9360
+  const spendTableXml = `
+  <w:tbl>${tblProps(W)}<w:tblGrid>${spW2.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
     <w:tr>
-      ${hc('Region',rW[0])}
-      ${hc('Last Week Spend',rW[1])}${hc('Reg.',rW[2])}${hc('Dep.',rW[3])}${hc('Deposits ($)',rW[4])}
-      ${hc('This Wk Spend',rW[5])}${hc('Reg.',rW[6])}${hc('Dep.',rW[7])}${hc('Deposits ($)',rW[8])}
+      ${hc('Region', spW2[0])}
+      ${(wLabels||['Week 1','Week 2','Week 3','Week 4']).map((lbl,i)=>hc(lbl, spW2[1+i])).join('')}
+      ${hc('Monthly Total ($)', spW2[5])}
     </w:tr>
-    ${s.regions.map((r,i)=>{
-      const bg = i%2===0?'F2F2F2':'FFFFFF';
-      const thisCols = r.paused
-        ? tc('Paused this week', rW[5]+rW[6]+rW[7]+rW[8], {italic:true, color:'888888', colspan:4, bg})
-        : tc(fmtN(r.cSpend),rW[5],{bg,center:true})+tc(String(r.cReg||0),rW[6],{bg,center:true})+tc(String(r.cDep||0),rW[7],{bg,center:true})+tc(fmtN(r.cDeps),rW[8],{bg,center:true});
+    ${s.regions.map((r,ri)=>{
+      const rSpend = (r.weeks||[]).filter(w=>!w.paused).reduce((a,w)=>a+(+w.spend||0),0);
+      const bg = ri%2===0?'F2F2F2':'FFFFFF';
       return `<w:tr>
-        ${tc(r.name||'',rW[0],{bold:true,bg})}
-        ${tc(fmtN(r.pSpend),rW[1],{bg,center:true})}${tc(String(r.pReg||0),rW[2],{bg,center:true})}${tc(String(r.pDep||0),rW[3],{bg,center:true})}${tc(fmtN(r.pDeps),rW[4],{bg,center:true})}
-        ${thisCols}
+        ${tc(r.name||'', spW2[0], {bold:true, bg})}
+        ${(r.weeks||[]).map((w,wi)=>tc(w.paused?'Paused':fmtN(w.spend||0,0), spW2[1+wi], {bg, center:true, italic:w.paused, color:w.paused?'888888':'1E1E1E'})).join('')}
+        ${tc(fmtN(rSpend,0), spW2[5], {bold:true, bg:'E8F5EE', center:true})}
       </w:tr>`;
     }).join('')}
     <w:tr>
-      ${tc('Total',rW[0],{bold:true,bg:'E8E8E8'})}
-      ${tc(fmtN(pTot.spend),rW[1],{bold:true,bg:'E8E8E8',center:true})}${tc(String(pTot.reg),rW[2],{bold:true,bg:'E8E8E8',center:true})}${tc(String(pTot.dep),rW[3],{bold:true,bg:'E8E8E8',center:true})}${tc(fmtN(pTot.deps),rW[4],{bold:true,bg:'E8E8E8',center:true})}
-      ${tc(fmtN(cTot.spend),rW[5],{bold:true,bg:'E8E8E8',center:true})}${tc(String(cTot.reg),rW[6],{bold:true,bg:'E8E8E8',center:true})}${tc(String(cTot.dep),rW[7],{bold:true,bg:'E8E8E8',center:true})}${tc(fmtN(cTot.deps),rW[8],{bold:true,bg:'E8E8E8',center:true})}
+      ${tc('Total', spW2[0], {bold:true, bg:'E8E8E8'})}
+      ${(wTots||[]).map((t,i)=>tc(fmtN(t.spend,0), spW2[1+i], {bold:true, bg:'E8E8E8', center:true})).join('')}
+      ${tc('$'+fmtN(mTot.spend,0), spW2[5], {bold:true, bg:'D4EDDA', center:true})}
     </w:tr>
   </w:tbl>`;
 
+  // ── Region Table 2: Monthly results by region ─────────────
+  const mrW = [1560, 1300, 1100, 1100, 1300, 1300, 1300, 400]; // trying to fit 7 cols
+  // 6 cols: region, spend, reg, dep users, deposits, cost/reg, dep rate
+  const mr2 = [1600, 1460, 980, 980, 1460, 1440, 1440]; // sum = 9360
+  const regionMonthlyXml = `
+  <w:tbl>${tblProps(W)}<w:tblGrid>${mr2.map(w=>`<w:gridCol w:w="${w}"/>`).join('')}</w:tblGrid>
+    <w:tr>
+      ${hc('Region', mr2[0])}
+      ${hc('Total Spend ($)', mr2[1])}
+      ${hc('Registrations', mr2[2])}
+      ${hc('Dep. Users', mr2[3])}
+      ${hc('Total Deposits ($)', mr2[4])}
+      ${hc('Cost / Reg ($)', mr2[5])}
+      ${hc('Dep. Rate', mr2[6])}
+    </w:tr>
+    ${s.regions.map((r,ri)=>{
+      const rSpend = (r.weeks||[]).filter(w=>!w.paused).reduce((a,w)=>a+(+w.spend||0),0);
+      const rReg   = (r.weeks||[]).filter(w=>!w.paused).reduce((a,w)=>a+(+w.reg||0),0);
+      const rDep   = (r.weeks||[]).filter(w=>!w.paused).reduce((a,w)=>a+(+w.dep||0),0);
+      const rDeps  = (r.weeks||[]).filter(w=>!w.paused).reduce((a,w)=>a+(+w.deps||0),0);
+      const cpr    = rReg>0 ? '$'+fmtN(rSpend/rReg,0) : '—';
+      const depRate= rReg>0 ? Math.round((rDep/rReg)*100)+'%' : '—';
+      const bg = ri%2===0?'F2F2F2':'FFFFFF';
+      return `<w:tr>
+        ${tc(r.name||'', mr2[0], {bold:true, bg})}
+        ${tc(fmtN(rSpend,0), mr2[1], {bg, center:true})}
+        ${tc(String(rReg), mr2[2], {bg, center:true})}
+        ${tc(String(rDep), mr2[3], {bg, center:true})}
+        ${tc(fmtN(rDeps,0), mr2[4], {bg, center:true})}
+        ${tc(cpr, mr2[5], {bg, center:true, color:'555555'})}
+        ${tc(depRate, mr2[6], {bg, center:true, color:'555555'})}
+      </w:tr>`;
+    }).join('')}
+    <w:tr>
+      ${tc('Total', mr2[0], {bold:true, bg:'E8E8E8'})}
+      ${tc(fmtN(mTot.spend,0), mr2[1], {bold:true, bg:'E8E8E8', center:true})}
+      ${tc(String(mTot.reg), mr2[2], {bold:true, bg:'E8E8E8', center:true})}
+      ${tc(String(mTot.dep), mr2[3], {bold:true, bg:'E8E8E8', center:true})}
+      ${tc(fmtN(mTot.deps,0), mr2[4], {bold:true, bg:'E8E8E8', center:true})}
+      ${tc(mTot.reg>0?'$'+fmtN(mTot.spend/mTot.reg,0):'—', mr2[5], {bold:true, bg:'E8E8E8', center:true})}
+      ${tc(mTot.reg>0?Math.round((mTot.dep/mTot.reg)*100)+'%':'—', mr2[6], {bold:true, bg:'E8E8E8', center:true})}
+    </w:tr>
+  </w:tbl>`;
+
+  // regionTableXml is now spendTableXml + regionMonthlyXml (used in assembly below)
+  const regionTableXml = spendTableXml + '\n' + regionMonthlyXml;
+
   // ── Monthly table ───────────────────────────────────────
-  const wSpendP = s.regions.reduce((a,r)=>a+(+r.pSpend||0),0)*4;
-  const wSpendC = s.regions.reduce((a,r)=>a+(+r.cSpend||0),0)*4;
+  const wSpendP = m.spendP||0;
+  const wSpendC = mTot.spend;
   const mRows = [
     ['Total ad spend ($)',  wSpendP, wSpendC, 0, false],
     ['Registrations',       m.regP,m.regC,0,true],
@@ -1314,7 +1361,13 @@ function _buildDocx() {
 
     ${heading('Week-over-Week by Region')}
     ${spacer(0.5)}
-    ${regionTableXml}
+    ${bodyPara('Ad Spend by Week ($)', {bold:true, sz:22, color:'1E1E1E'})}
+    ${spacer(0.3)}
+    ${spendTableXml}
+    ${spacer(1)}
+    ${bodyPara('Monthly Results by Region ('+( s.monthC||'This Month')+')', {bold:true, sz:22, color:'1E1E1E'})}
+    ${spacer(0.3)}
+    ${regionMonthlyXml}
     ${spacer(1.5)}
 
     ${heading((s.monthC||'This Month')+' Monthly Summary')}
@@ -1769,38 +1822,86 @@ function renderReport() {
 
     <div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">Week-over-Week by Region</span></div>
-      <div style="overflow-x:auto;">
-      <div class="tbl-wrap"><table class="rt">
-        <thead>
-          <tr class="grp">
-            <th class="first" rowspan="2">Region</th>
-            ${wLabels.map((lbl,wi)=>`<th colspan="2" style="text-align:center;background:${wi===3?'#111':'#333'};">${esc(lbl)}</th>`).join('')}
-            <th colspan="4" style="text-align:center;background:#1a4d2e;">Monthly Total (${esc(s.monthC||'This Month')})</th>
-          </tr>
-          <tr>
-            ${wLabels.map(()=>'<th style="font-size:11px;">Spend ($)</th><th style="font-size:11px;">Deposits ($)</th>').join('')}
-            <th style="font-size:11px;background:#eaf5ee;">Spend ($)</th>
-            <th style="font-size:11px;background:#eaf5ee;">Reg.</th>
-            <th style="font-size:11px;background:#eaf5ee;">Dep. Users</th>
-            <th style="font-size:11px;background:#eaf5ee;">Deposits ($)</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${regionRows}
-          <tr class="tot">
-            <td>Total</td>
-            ${wTots.map(t=>`<td class="cdiv">${fmt(t.spend,0)}</td><td>${fmt(t.deps,0)}</td>`).join('')}
-            <td class="cdiv" style="background:#f0fdf4;font-weight:700;">${fmt(mTot.spend,0)}</td>
-            <td style="background:#f0fdf4;">${mTot.reg}</td>
-            <td style="background:#f0fdf4;">${mTot.dep}</td>
-            <td style="background:#f0fdf4;font-weight:700;">${fmt(mTot.deps,0)}</td>
-          </tr>
-        </tbody>
-      </table></div>
+
+      <!-- Table 1: Weekly spend trend -->
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Ad Spend by Week ($)</div>
+      <div class="tbl-wrap" style="margin-bottom:20px;">
+        <table class="rt">
+          <thead>
+            <tr class="grp">
+              <th class="first">Region</th>
+              ${wLabels.map((lbl,wi)=>`<th style="text-align:center;background:${wi===3?'#111':'#333'};">${esc(lbl)}</th>`).join('')}
+              <th style="text-align:center;background:#1a4d2e;">Monthly Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${s.regions.map((r,ri)=>{
+              const rSpend=r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.spend||0),0);
+              return `<tr>
+                <td style="font-weight:600">${esc(r.name)}</td>
+                ${r.weeks.map((w,wi)=>`<td style="text-align:right;${w.paused?'color:var(--muted);font-style:italic;':''}">${w.paused?'Paused':fmt(w.spend||0,0)}</td>`).join('')}
+                <td style="text-align:right;font-weight:700;background:#f0fdf4;">${fmt(rSpend,0)}</td>
+              </tr>`;
+            }).join('')}
+            <tr class="tot">
+              <td>Total</td>
+              ${wTots.map(t=>`<td style="text-align:right;">${fmt(t.spend,0)}</td>`).join('')}
+              <td style="text-align:right;background:#f0fdf4;font-weight:700;">$${fmt(mTot.spend,0)}</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+
+      <!-- Table 2: Monthly results by region -->
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Monthly Results by Region (${esc(s.monthC||'This Month')})</div>
+      <div class="tbl-wrap" style="margin-bottom:20px;">
+        <table class="rt">
+          <thead>
+            <tr class="grp">
+              <th class="first">Region</th>
+              <th style="text-align:right;">Total Spend ($)</th>
+              <th style="text-align:right;">Registrations</th>
+              <th style="text-align:right;">Dep. Users</th>
+              <th style="text-align:right;">Total Deposits ($)</th>
+              <th style="text-align:right;">Cost / Reg ($)</th>
+              <th style="text-align:right;">Dep. Rate</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${s.regions.map(r=>{
+              const rSpend=r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.spend||0),0);
+              const rReg  =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.reg||0),0);
+              const rDep  =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.dep||0),0);
+              const rDeps =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.deps||0),0);
+              const cpr   = rReg>0 ? fmt(rSpend/rReg,0) : '—';
+              const depRate= rReg>0 ? Math.round((rDep/rReg)*100)+'%' : '—';
+              return `<tr>
+                <td style="font-weight:600">${esc(r.name)}</td>
+                <td style="text-align:right;">${fmt(rSpend,0)}</td>
+                <td style="text-align:right;">${rReg}</td>
+                <td style="text-align:right;">${rDep}</td>
+                <td style="text-align:right;">${fmt(rDeps,0)}</td>
+                <td style="text-align:right;color:var(--sub);">$${cpr}</td>
+                <td style="text-align:right;color:var(--sub);">${depRate}</td>
+              </tr>`;
+            }).join('')}
+            <tr class="tot">
+              <td>Total</td>
+              <td style="text-align:right;">${fmt(mTot.spend,0)}</td>
+              <td style="text-align:right;">${mTot.reg}</td>
+              <td style="text-align:right;">${mTot.dep}</td>
+              <td style="text-align:right;">${fmt(mTot.deps,0)}</td>
+              <td style="text-align:right;">$${mTot.reg>0?fmt(mTot.spend/mTot.reg,0):'—'}</td>
+              <td style="text-align:right;">${mTot.reg>0?Math.round((mTot.dep/mTot.reg)*100)+'%':'—'}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Charts -->
       <div class="two-col">
-        <div class="chart-card"><div class="chart-ttl">Ad spend by region ($)</div><div class="chart-wrap"><canvas id="cSpend"></canvas></div></div>
-        <div class="chart-card"><div class="chart-ttl">Registrations by region</div><div class="chart-wrap"><canvas id="cReg"></canvas></div></div>
+        <div class="chart-card"><div class="chart-ttl">Ad spend by region — weekly trend ($)</div><div class="chart-wrap"><canvas id="cSpend"></canvas></div></div>
+        <div class="chart-card"><div class="chart-ttl">Registrations by region — weekly trend</div><div class="chart-wrap"><canvas id="cReg"></canvas></div></div>
       </div>
     </div>
 
