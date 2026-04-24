@@ -269,26 +269,15 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
       <span class="fs-chev">▼</span>
     </div>
     <div class="form-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">Tick "Paused" for any region that didn't run this week — those columns will be greyed out.</p>
-      <div style="overflow-x:auto;">
-      <table class="tbl-in" id="tbl-regions">
-        <thead>
-          <tr>
-            <th>Region</th>
-            <th colspan="4" style="text-align:center;background:#fafaf8;">Last Week</th>
-            <th colspan="4" style="text-align:center;background:#fafaf8;">This Week</th>
-            <th>Paused?</th><th></th>
-          </tr>
-          <tr>
-            <th></th>
-            <th>Spend ($)</th><th>Reg.</th><th>Dep. Users</th><th>Deposits ($)</th>
-            <th>Spend ($)</th><th>Reg.</th><th>Dep. Users</th><th>Deposits ($)</th>
-            <th></th><th></th>
-          </tr>
-        </thead>
-        <tbody id="tb-regions"></tbody>
-      </table>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:8px;">Enter data for each week of the month. Tick "P" (Paused) if a region didn't run that week. Monthly totals are calculated automatically.</p>
+      <p style="font-size:12px;color:var(--faint);margin-bottom:14px;">You can rename the week labels in the Week Labels field above.</p>
+      <div class="field-row c4" style="margin-bottom:14px;" id="week-label-row">
+        <div class="field"><label>Week 1 label</label><input type="text" id="wl0" onchange="S.weekLabels[0]=this.value;save()" placeholder="Week 1"></div>
+        <div class="field"><label>Week 2 label</label><input type="text" id="wl1" onchange="S.weekLabels[1]=this.value;save()" placeholder="Week 2"></div>
+        <div class="field"><label>Week 3 label</label><input type="text" id="wl2" onchange="S.weekLabels[2]=this.value;save()" placeholder="Week 3"></div>
+        <div class="field"><label>Week 4 label</label><input type="text" id="wl3" onchange="S.weekLabels[3]=this.value;save()" placeholder="Week 4"></div>
       </div>
+      <div id="regions-form-list"></div>
       <button class="add-btn" onclick="addRegion()">+ Add Region</button>
     </div>
   </div>
@@ -300,15 +289,21 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
       <span class="fs-chev">▼</span>
     </div>
     <div class="form-body">
+      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
+        <strong>Ad Spend, Registrations, Depositing Users, and Deposits</strong> are auto-calculated from the 4 weekly region inputs above.
+        Fill in the fields below for metrics that come from other systems (CRM, backoffice).
+      </p>
       <table class="tbl-in">
-        <thead><tr><th>Metric</th><th>Previous Month</th><th>Current Month</th></tr></thead>
+        <thead><tr><th>Metric</th><th>Previous Month</th><th>Current Month (manual)</th><th style="background:#e8f5ee;color:#166534;">Auto from weekly data</th></tr></thead>
         <tbody>
-          <tr><td class="rl">Registrations</td>    <td><input type="number" id="m-reg-p" step="1" placeholder="0"></td><td><input type="number" id="m-reg-c" step="1" placeholder="0"></td></tr>
-          <tr><td class="rl">Accounts Opened</td>  <td><input type="number" id="m-acc-p" step="1" placeholder="0"></td><td><input type="number" id="m-acc-c" step="1" placeholder="0"></td></tr>
-          <tr><td class="rl">Total Deposits ($)</td><td><input type="number" id="m-dep-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-dep-c" step="0.01" placeholder="0"></td></tr>
-          <tr><td class="rl">Withdrawals ($)</td>  <td><input type="number" id="m-out-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-out-c" step="0.01" placeholder="0"></td></tr>
-          <tr><td class="rl">Net Deposits ($)</td> <td><input type="number" id="m-net-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-net-c" step="0.01" placeholder="0"></td></tr>
-          <tr><td class="rl">Trading Vol (lot)</td><td><input type="number" id="m-lot-p" step="0.001" placeholder="0"></td><td><input type="number" id="m-lot-c" step="0.001" placeholder="0"></td></tr>
+          <tr><td class="rl">Total Ad Spend ($)</td><td><input type="number" id="m-spend-p" step="0.01" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;" id="m-spend-auto-cell">auto</td><td id="m-spend-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
+          <tr><td class="rl">Registrations</td>    <td><input type="number" id="m-reg-p" step="1" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-reg-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
+          <tr><td class="rl">Depositing Users</td> <td><input type="number" id="m-dep-p" step="1" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-dep-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
+          <tr><td class="rl">Total Deposits ($)</td><td><input type="number" id="m-deps-p" step="0.01" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-deps-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
+          <tr><td class="rl">Accounts Opened</td>  <td><input type="number" id="m-acc-p" step="1" placeholder="0"></td><td><input type="number" id="m-acc-c" step="1" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
+          <tr><td class="rl">Withdrawals ($)</td>  <td><input type="number" id="m-out-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-out-c" step="0.01" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
+          <tr><td class="rl">Net Deposits ($)</td> <td><input type="number" id="m-net-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-net-c" step="0.01" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
+          <tr><td class="rl">Trading Vol (lot)</td><td><input type="number" id="m-lot-p" step="0.001" placeholder="0"></td><td><input type="number" id="m-lot-c" step="0.001" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
         </tbody>
       </table>
     </div>
@@ -343,8 +338,35 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
       <span class="fs-chev">▼</span>
     </div>
     <div class="form-body">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;padding:12px 16px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:10px;">
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:600;color:#166534;margin-bottom:2px;">Import from WeTrade Analytics JSON</div>
+          <div style="font-size:12px;color:#4ade80aa;color:#15803d;">Export the JSON from your analytics dashboard and upload it here — sites are auto-mapped.</div>
+        </div>
+        <button class="add-btn" onclick="document.getElementById('lp-json-input').click()" style="border-color:#bbf7d0;color:#166534;background:#f0fdf4;white-space:nowrap;">⬆ Import JSON</button>
+        <input type="file" id="lp-json-input" accept=".json" style="display:none" onchange="importAnalyticsJSON(this)">
+      </div>
       <div id="lp-list"></div>
-      <button class="add-btn" onclick="addLP()">+ Add Landing Page</button>
+      <button class="add-btn" onclick="addLP()">+ Add Landing Page Manually</button>
+    </div>
+  </div>
+
+  <!-- Site picker modal -->
+  <div id="site-picker-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:200;align-items:center;justify-content:center;">
+    <div style="background:#fff;border-radius:14px;padding:28px 32px;width:540px;max-width:92vw;max-height:80vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,0.2);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-size:17px;font-weight:600;">Select landing pages to import</div>
+        <button onclick="closeSitePicker()" style="background:none;border:none;font-size:20px;cursor:pointer;color:#888;">×</button>
+      </div>
+      <div style="font-size:13px;color:#888580;margin-bottom:18px;" id="site-picker-meta"></div>
+      <div id="site-picker-list"></div>
+      <div style="display:flex;gap:10px;justify-content:space-between;margin-top:18px;padding-top:14px;border-top:1px solid #e2e0d8;">
+        <button onclick="toggleAllSites()" style="padding:8px 16px;border:1px solid #e2e0d8;border-radius:8px;background:#fff;font-size:13px;cursor:pointer;font-family:Inter,sans-serif;" id="btn-toggle-all">Select all</button>
+        <div style="display:flex;gap:8px;">
+          <button onclick="closeSitePicker()" style="padding:9px 20px;border:1px solid #e2e0d8;border-radius:8px;background:#fff;font-size:14px;cursor:pointer;font-family:Inter,sans-serif;">Cancel</button>
+          <button onclick="confirmSiteImport()" style="padding:9px 22px;border:none;border-radius:8px;background:#111110;color:#fff;font-size:14px;font-weight:500;cursor:pointer;font-family:Inter,sans-serif;">Import selected →</button>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -402,6 +424,8 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
   <div class="report-page" id="rpt"></div>
 </div>
 
+
+
 <script>
 // ═══════════════════════════════
 // DEFAULTS — blank slate
@@ -411,6 +435,7 @@ const BLANK = {
   igTitle:'', lpTitle:'Landing Page Insights', projTitle:'Project Updates', ctTitle:'Additional Updates', prioTitle:"This Month's Priorities",
   budget:[],
   regions:[],
+  weekLabels:['Week 1','Week 2','Week 3','Week 4 (latest)'],
   monthly:{ regP:'',regC:'',accP:'',accC:'',depP:'',depC:'',outP:'',outC:'',netP:'',netC:'',lotP:'',lotC:'' },
   ig:{ s1:'',f1:'',s2:'',f2:'',s3:'',f3:'',start:'',end:'' },
   landingPages:[],
@@ -439,11 +464,40 @@ const SAMPLE = {
     { name:'Million Dollar Live – Indonesia',   daily:75  },
     { name:'Million Dollar Live – Thailand',    daily:75  },
   ],
+  weekLabels:['Week 1 (Mar 5–12)','Week 2 (Mar 13–19)','Week 3 (Mar 19–26)','Week 4 (Mar 26–Apr 2)'],
   regions:[
-    { name:'Indonesia',   pSpend:393.62, pReg:8, pDep:2, pDeps:217.00, cSpend:334.58, cReg:7, cDep:2, cDeps:184.45, paused:false },
-    { name:'Thailand',    pSpend:474.96, pReg:2, pDep:2, pDeps:170.00, cSpend:403.72, cReg:2, cDep:2, cDeps:144.50, paused:false },
-    { name:'Philippines', pSpend:225.45, pReg:2, pDep:3, pDeps:37.25,  cSpend:0,      cReg:0, cDep:0, cDeps:0,      paused:true  },
-    { name:'LATAM',       pSpend:178.32, pReg:5, pDep:1, pDeps:25.00,  cSpend:0,      cReg:0, cDep:0, cDeps:0,      paused:true  },
+    { name:'Indonesia',
+      weeks:[
+        {spend:325.24, reg:2,  dep:4, deps:344.00, paused:false},
+        {spend:393.62, reg:8,  dep:2, deps:217.00, paused:false},
+        {spend:393.62, reg:8,  dep:2, deps:217.00, paused:false},
+        {spend:334.58, reg:7,  dep:2, deps:184.45, paused:false},
+      ]
+    },
+    { name:'Thailand',
+      weeks:[
+        {spend:319.29, reg:0,  dep:2, deps:140.00, paused:false},
+        {spend:474.96, reg:2,  dep:2, deps:170.00, paused:false},
+        {spend:474.96, reg:2,  dep:2, deps:170.00, paused:false},
+        {spend:403.72, reg:2,  dep:2, deps:144.50, paused:false},
+      ]
+    },
+    { name:'Philippines',
+      weeks:[
+        {spend:310.29, reg:0,  dep:4, deps:104.00, paused:false},
+        {spend:225.45, reg:2,  dep:3, deps:37.25,  paused:false},
+        {spend:225.45, reg:2,  dep:3, deps:37.25,  paused:false},
+        {spend:0,      reg:0,  dep:0, deps:0,       paused:true },
+      ]
+    },
+    { name:'LATAM',
+      weeks:[
+        {spend:328.32, reg:2,  dep:0, deps:0,      paused:false},
+        {spend:178.32, reg:5,  dep:1, deps:25.00,  paused:false},
+        {spend:178.32, reg:5,  dep:1, deps:25.00,  paused:false},
+        {spend:0,      reg:0,  dep:0, deps:0,       paused:true },
+      ]
+    },
   ],
   monthly:{ regP:55, regC:85, accP:23, accC:43, depP:3129, depC:3380, outP:1197, outC:1267, netP:1932, netC:2113, lotP:46.99, lotC:48.28 },
   ig:{ s1:55, f1:221, s2:93.21, f2:685, s3:60, f3:382, start:1818, end:2200 },
@@ -547,8 +601,20 @@ function collect() {
   S.prioTitle = gv('f-prio-title');
   S.goal      = gv('f-goal');
   const m = S.monthly;
-  ['reg','acc','dep','out','net','lot'].forEach(k => {
-    m[k+'P'] = gn('m-'+k+'-p'); m[k+'C'] = gn('m-'+k+'-c');
+  // auto fields — computed from weekly data (set in updateAutoTotals)
+  // manual fields
+  m.spendP = gn('m-spend-p');
+  m.regP   = gn('m-reg-p');
+  m.depP   = gn('m-dep-p');
+  m.depsP  = gn('m-deps-p');
+  m.accP   = gn('m-acc-p'); m.accC  = gn('m-acc-c');
+  m.outP   = gn('m-out-p'); m.outC  = gn('m-out-c');
+  m.netP   = gn('m-net-p'); m.netC  = gn('m-net-c');
+  m.lotP   = gn('m-lot-p'); m.lotC  = gn('m-lot-c');
+  if (!S.weekLabels) S.weekLabels = ['Week 1','Week 2','Week 3','Week 4'];
+  [0,1,2,3].forEach(i => {
+    const el = document.getElementById('wl'+i);
+    if (el) S.weekLabels[i] = el.value || ('Week '+(i+1));
   });
   const ig = S.ig;
   ['s1','f1','s2','f2','s3','f3','start','end'].forEach(k => ig[k] = gn('ig-'+k));
@@ -584,16 +650,18 @@ function renderForm() {
   const ctTitleEl = document.getElementById('f-ct-title'); if(ctTitleEl) ctTitleEl.value = S.ctTitle||'Additional Updates';
   document.getElementById('f-prio-title').value= S.prioTitle||"This Month's Priorities";
   document.getElementById('f-goal').value      = S.goal;
-  const m=S.monthly;
-  ['reg','acc','dep','out','net','lot'].forEach(k=>{
-    const ep=document.getElementById('m-'+k+'-p'); const ec=document.getElementById('m-'+k+'-c');
-    if(ep)ep.value=m[k+'P']||''; if(ec)ec.value=m[k+'C']||'';
-  });
+  const m=S.monthly||{};
+  const fields=[['m-spend-p','spendP'],['m-reg-p','regP'],['m-dep-p','depP'],['m-deps-p','depsP'],
+    ['m-acc-p','accP'],['m-acc-c','accC'],['m-out-p','outP'],['m-out-c','outC'],
+    ['m-net-p','netP'],['m-net-c','netC'],['m-lot-p','lotP'],['m-lot-c','lotC']];
+  fields.forEach(([id,key])=>{ const el=document.getElementById(id); if(el)el.value=m[key]||''; });
+  if (!S.weekLabels) S.weekLabels=['Week 1','Week 2','Week 3','Week 4'];
+  [0,1,2,3].forEach(i=>{ const el=document.getElementById('wl'+i); if(el)el.value=S.weekLabels[i]||('Week '+(i+1)); });
   const ig=S.ig;
   ['s1','f1','s2','f2','s3','f3','start','end'].forEach(k=>{
     const e=document.getElementById('ig-'+k); if(e)e.value=ig[k]||'';
   });
-  renderBudgetRows(); renderRegionRows(); renderLPRows(); renderCTRows(); renderProjRows(); renderPrioRows();
+  renderBudgetRows(); renderRegionRows(); updateAutoTotals(); renderLPRows(); renderCTRows(); renderProjRows(); renderPrioRows();
   updateBadges();
 }
 
@@ -613,50 +681,250 @@ function addBudget(){ S.budget.push({name:'',daily:''}); save(); renderBudgetRow
 // ═══════════════════════════════
 // REGIONS
 // ═══════════════════════════════
-function renderRegionRows() {
-  document.getElementById('tb-regions').innerHTML = S.regions.map((r,i)=>`
-    <tr>
-      <td><input type="text" value="${esc(r.name)}" onchange="S.regions[${i}].name=this.value;save()" placeholder="Region" style="max-width:110px"></td>
-      <td><input type="number" value="${r.pSpend||''}" step="0.01" onchange="S.regions[${i}].pSpend=+this.value;save()"></td>
-      <td><input type="number" value="${r.pReg||''}"   step="1"    onchange="S.regions[${i}].pReg=+this.value;save()"></td>
-      <td><input type="number" value="${r.pDep||''}"   step="1"    onchange="S.regions[${i}].pDep=+this.value;save()"></td>
-      <td><input type="number" value="${r.pDeps||''}"  step="0.01" onchange="S.regions[${i}].pDeps=+this.value;save()"></td>
-      <td><input type="number" value="${r.cSpend||''}" step="0.01" onchange="S.regions[${i}].cSpend=+this.value;save()" ${r.paused?'disabled style="opacity:0.3"':''}></td>
-      <td><input type="number" value="${r.cReg||''}"   step="1"    onchange="S.regions[${i}].cReg=+this.value;save()"   ${r.paused?'disabled style="opacity:0.3"':''}></td>
-      <td><input type="number" value="${r.cDep||''}"   step="1"    onchange="S.regions[${i}].cDep=+this.value;save()"   ${r.paused?'disabled style="opacity:0.3"':''}></td>
-      <td><input type="number" value="${r.cDeps||''}"  step="0.01" onchange="S.regions[${i}].cDeps=+this.value;save()"  ${r.paused?'disabled style="opacity:0.3"':''}></td>
-      <td><label class="tog"><input type="checkbox" ${r.paused?'checked':''} onchange="S.regions[${i}].paused=this.checked;save();renderRegionRows()"> Paused</label></td>
-      <td style="text-align:center"><button class="del-btn" onclick="S.regions.splice(${i},1);save();renderRegionRows()">×</button></td>
-    </tr>`).join('') || '<tr><td colspan="11" style="padding:12px;color:var(--faint);font-size:13px;text-align:center;">No regions yet</td></tr>';
+function migrateRegion(r) {
+  // Migrate old 2-week format to new 4-week format
+  if (r.weeks) return r;
+  return {
+    name: r.name||'',
+    weeks: [
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:r.pSpend||'', reg:r.pReg||'', dep:r.pDep||'', deps:r.pDeps||'', paused:false},
+      {spend:r.cSpend||'', reg:r.cReg||'', dep:r.cDep||'', deps:r.cDeps||'', paused:r.paused||false},
+    ]
+  };
 }
-function addRegion(){ S.regions.push({name:'',pSpend:'',pReg:'',pDep:'',pDeps:'',cSpend:'',cReg:'',cDep:'',cDeps:'',paused:false}); save(); renderRegionRows(); }
+
+function mkWeek(){ return {spend:'',reg:'',dep:'',deps:'',paused:false}; }
+
+function renderRegionRows() {
+  S.regions = S.regions.map(migrateRegion);
+  const labels = S.weekLabels||['Week 1','Week 2','Week 3','Week 4'];
+  const el = document.getElementById('regions-form-list');
+  if (!el) return;
+  if (S.regions.length===0) { el.innerHTML='<p style="font-size:13px;color:var(--faint);margin-bottom:10px;">No regions yet.</p>'; updateAutoTotals(); return; }
+  el.innerHTML = S.regions.map((r,ri)=>{
+    r = migrateRegion(r); S.regions[ri]=r;
+    const wRows = r.weeks.map((w,wi)=>{
+      const dis = w.paused?'disabled style="opacity:0.3"':'';
+      return `<tr>
+        <td class="rl" style="white-space:nowrap;font-size:12px;">${labels[wi]||'Week '+(wi+1)}</td>
+        <td><input type="number" value="${w.spend||''}" step="0.01" ${dis} onchange="S.regions[${ri}].weeks[${wi}].spend=+this.value;save();updateAutoTotals()" placeholder="0"></td>
+        <td><input type="number" value="${w.reg||''}"   step="1"    ${dis} onchange="S.regions[${ri}].weeks[${wi}].reg=+this.value;save();updateAutoTotals()" placeholder="0"></td>
+        <td><input type="number" value="${w.dep||''}"   step="1"    ${dis} onchange="S.regions[${ri}].weeks[${wi}].dep=+this.value;save();updateAutoTotals()" placeholder="0"></td>
+        <td><input type="number" value="${w.deps||''}"  step="0.01" ${dis} onchange="S.regions[${ri}].weeks[${wi}].deps=+this.value;save();updateAutoTotals()" placeholder="0"></td>
+        <td style="text-align:center"><label class="tog"><input type="checkbox" ${w.paused?'checked':''} onchange="S.regions[${ri}].weeks[${wi}].paused=this.checked;save();renderRegionRows()"> P</label></td>
+      </tr>`;
+    }).join('');
+    return `<div class="ti" style="margin-bottom:14px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+        <strong style="flex:1;font-size:14px;font-weight:600;">
+          <input type="text" value="${esc(r.name)}" onchange="S.regions[${ri}].name=this.value;save()" placeholder="Region name" style="font-size:14px;font-weight:600;border:none;background:transparent;width:100%;outline:none;">
+        </strong>
+        <button class="del-btn" onclick="S.regions.splice(${ri},1);save();renderRegionRows()">×</button>
+      </div>
+      <div style="overflow-x:auto;">
+      <table class="tbl-in">
+        <thead><tr><th>Week</th><th>Spend ($)</th><th>Reg.</th><th>Dep. Users</th><th>Deposits ($)</th><th>Paused?</th></tr></thead>
+        <tbody>${wRows}</tbody>
+      </table>
+      </div>
+    </div>`;
+  }).join('');
+  updateAutoTotals();
+}
+
+function updateAutoTotals() {
+  // Sum all non-paused weeks across all regions
+  let totSpend=0, totReg=0, totDep=0, totDeps=0;
+  (S.regions||[]).forEach(r=>{
+    const rm = migrateRegion(r);
+    (rm.weeks||[]).forEach(w=>{
+      if(!w.paused){ totSpend+=(+w.spend||0); totReg+=(+w.reg||0); totDep+=(+w.dep||0); totDeps+=(+w.deps||0); }
+    });
+  });
+  const fmtA = (n,d=2)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
+  const set=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
+  set('m-spend-auto','$'+fmtA(totSpend,0));
+  set('m-reg-auto',  String(totReg));
+  set('m-dep-auto',  String(totDep));
+  set('m-deps-auto', '$'+fmtA(totDeps,0));
+  // Also store in monthly for report rendering
+  if(!S.monthly) S.monthly={};
+  S.monthly.spendC  = totSpend;
+  S.monthly.regC    = totReg;
+  S.monthly.depC    = totDep;
+  S.monthly.depsC   = totDeps;
+}
+
+function addRegion(){
+  if(!S.weekLabels) S.weekLabels=['Week 1','Week 2','Week 3','Week 4'];
+  S.regions.push({name:'',weeks:[mkWeek(),mkWeek(),mkWeek(),mkWeek()]});
+  save(); renderRegionRows();
+}
 
 // ═══════════════════════════════
 // LANDING PAGES
 // ═══════════════════════════════
+
+// ═══════════════════════════════════════
+// ANALYTICS JSON IMPORT
+// ═══════════════════════════════════════
+let _pendingSites = [];
+
+function importAnalyticsJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (!data.sites || !Array.isArray(data.sites)) {
+        alert('This doesn\'t look like a WeTrade Analytics JSON — "sites" array not found.');
+        input.value = ''; return;
+      }
+      _pendingSites = data.sites;
+      showSitePicker(data);
+    } catch(err) {
+      alert('Could not parse JSON file: ' + err.message);
+    }
+    input.value = '';
+  };
+  reader.readAsText(file);
+}
+
+function showSitePicker(data) {
+  const meta = data.meta || {};
+  document.getElementById('site-picker-meta').textContent =
+    `${meta.sitesWithData || data.sites.length} sites · Period: ${(meta.period||'').replace(/_/g,' ')} · Generated ${meta.generatedAtLocal || ''}`;
+
+  const list = document.getElementById('site-picker-list');
+  list.innerHTML = data.sites.map((site, i) => {
+    const m = site.metrics || {};
+    const bounceRate = Math.round(100 - (m.engagementRate || 0));
+    const avgTimeSec = m.avgDurationSeconds || 0;
+    const tMin = Math.floor(avgTimeSec/60), tSec = avgTimeSec % 60;
+    const timeLabel = tMin > 0 ? tMin+'m '+tSec+'s' : tSec+'s';
+    const clicks = m.sessions || 0;
+    const totalClicks = m.users || 0;
+    const lpViewRate = totalClicks > 0 ? Math.round((clicks/totalClicks)*100) : 100;
+
+    // Already imported check
+    const existing = (S.landingPages||[]).find(lp => lp._hostname === site.hostname);
+
+    return `<div style="display:flex;align-items:flex-start;gap:12px;padding:12px 0;border-bottom:1px solid #f0efea;" id="site-row-${i}">
+      <input type="checkbox" id="site-cb-${i}" ${existing?'':'checked'} style="width:16px;height:16px;margin-top:3px;cursor:pointer;flex-shrink:0;">
+      <div style="flex:1;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <label for="site-cb-${i}" style="font-size:14px;font-weight:600;cursor:pointer;">${site.name}</label>
+          <span style="font-size:11px;color:#888;font-family:monospace;">${site.hostname}</span>
+          ${existing ? '<span style="font-size:11px;background:#fef3c7;color:#92400e;border:1px solid #fde68a;border-radius:99px;padding:1px 7px;">already imported</span>' : ''}
+        </div>
+        <div style="display:flex;gap:14px;flex-wrap:wrap;">
+          <span style="font-size:12px;color:#555450;">👥 ${(m.users||0).toLocaleString()} users</span>
+          <span style="font-size:12px;color:#555450;">📄 ${(m.sessions||0).toLocaleString()} sessions</span>
+          <span style="font-size:12px;color:${bounceRate>60?'#991b1b':'#166534'};">↩ ${bounceRate}% bounce</span>
+          <span style="font-size:12px;color:${avgTimeSec<60?'#991b1b':'#166534'};">⏱ ${timeLabel} avg</span>
+          <span style="font-size:12px;color:#555450;">🖱 ${Object.values(site.buttonClicks||{}).reduce((a,b)=>a+b,0)} clicks</span>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('site-picker-modal').style.display = 'flex';
+}
+
+function toggleAllSites() {
+  const cbs = document.querySelectorAll('[id^="site-cb-"]');
+  const anyUnchecked = [...cbs].some(cb => !cb.checked);
+  cbs.forEach(cb => cb.checked = anyUnchecked);
+  document.getElementById('btn-toggle-all').textContent = anyUnchecked ? 'Deselect all' : 'Select all';
+}
+
+function closeSitePicker() {
+  document.getElementById('site-picker-modal').style.display = 'none';
+  _pendingSites = [];
+}
+
+function confirmSiteImport() {
+  if (!S.landingPages) S.landingPages = [];
+  let imported = 0;
+
+  _pendingSites.forEach((site, i) => {
+    const cb = document.getElementById('site-cb-'+i);
+    if (!cb || !cb.checked) return;
+
+    const m = site.metrics || {};
+    const bounceRate = +(100 - (m.engagementRate || 0)).toFixed(1);
+    const avgTimeSec = m.avgDurationSeconds || 0;
+    // users = unique visitors (clicks), sessions = page loads (LP views)
+    const clicks   = m.users    || 0;
+    const lpViews  = m.sessions  || 0;
+    const lpViewRate = clicks > 0 ? +((lpViews / clicks) * 100).toFixed(1) : 100;
+    // CTR is not in this data — leave blank for manual entry
+    const btnClicks = Object.values(site.buttonClicks||{}).reduce((a,b)=>a+b,0);
+    const ctr = clicks > 0 ? +((btnClicks / clicks) * 100).toFixed(1) : 0;
+
+    const lp = {
+      _hostname:   site.hostname,           // internal reference
+      name:        site.name,
+      clicks:      clicks,
+      ctr:         ctr,                     // button CTR (join/copyTrade clicks ÷ users)
+      bounceRate:  bounceRate,
+      avgTime:     avgTimeSec,
+      lpViews:     lpViews,
+      lpViewRate:  lpViewRate,
+    };
+
+    // Replace if already exists, else add
+    const idx = S.landingPages.findIndex(p => p._hostname === site.hostname);
+    if (idx >= 0) S.landingPages[idx] = lp;
+    else S.landingPages.push(lp);
+    imported++;
+  });
+
+  closeSitePicker();
+  save();
+  renderLPRows();
+
+  if (imported > 0) {
+    const msg = document.getElementById('save-msg');
+    msg.textContent = `✓ Imported ${imported} landing page${imported>1?'s':''} from analytics JSON`;
+    setTimeout(() => msg.textContent = 'All changes saved automatically', 3000);
+  }
+}
+
 function renderLPRows() {
   if (!S.landingPages) S.landingPages = [];
   document.getElementById('lp-list').innerHTML = S.landingPages.length === 0
-    ? '<p style="font-size:13px;color:var(--faint);margin-bottom:10px;">No landing pages added yet.</p>'
-    : S.landingPages.map((lp,i)=>`
-    <div class="ti">
-      <div class="ti-head">
-        <strong style="flex:1;font-size:14px;">
-          <input type="text" value="${esc(lp.name)}" onchange="S.landingPages[${i}].name=this.value;save()" placeholder="Landing page name" style="font-size:14px;font-weight:600;border:none;background:transparent;width:100%;outline:none;">
-        </strong>
-        <button class="del-btn" onclick="S.landingPages.splice(${i},1);save();renderLPRows()">×</button>
-      </div>
-      <div class="field-row c3">
-        <div class="field"><label>Clicks</label><input type="number" value="${lp.clicks||''}" step="1" onchange="S.landingPages[${i}].clicks=+this.value;save()" placeholder="0"></div>
-        <div class="field"><label>CTR (%)</label><input type="number" value="${lp.ctr||''}" step="0.1" onchange="S.landingPages[${i}].ctr=+this.value;save()" placeholder="0"></div>
-        <div class="field"><label>Bounce Rate (%)</label><input type="number" value="${lp.bounceRate||''}" step="0.1" onchange="S.landingPages[${i}].bounceRate=+this.value;save()" placeholder="0"></div>
-      </div>
-      <div class="field-row c3">
-        <div class="field"><label>Avg. Time on Page (sec)</label><input type="number" value="${lp.avgTime||''}" step="1" onchange="S.landingPages[${i}].avgTime=+this.value;save()" placeholder="0"></div>
-        <div class="field"><label>Landing Page Views</label><input type="number" value="${lp.lpViews||''}" step="1" onchange="S.landingPages[${i}].lpViews=+this.value;save()" placeholder="0"></div>
-        <div class="field"><label>LP View Rate (%)</label><input type="number" value="${lp.lpViewRate||''}" step="0.1" onchange="S.landingPages[${i}].lpViewRate=+this.value;save()" placeholder="0"></div>
-      </div>
-    </div>`).join('');
+    ? '<p style="font-size:13px;color:var(--faint);margin-bottom:10px;">No landing pages yet — import from JSON or add manually.</p>'
+    : S.landingPages.map((lp,i)=>{
+      const isImported = !!lp._hostname;
+      const tMin=Math.floor((lp.avgTime||0)/60), tSec=(lp.avgTime||0)%60;
+      const timeLabel=tMin>0?tMin+'m '+tSec+'s':tSec+'s';
+      return `<div class="ti">
+        <div class="ti-head">
+          <strong style="flex:1;font-size:14px;">
+            <input type="text" value="${esc(lp.name)}" onchange="S.landingPages[${i}].name=this.value;save()" placeholder="Landing page name" style="font-size:14px;font-weight:600;border:none;background:transparent;width:100%;outline:none;">
+          </strong>
+          ${isImported ? `<span style="font-size:11px;background:#f0fdf4;color:#166534;border:1px solid #bbf7d0;border-radius:99px;padding:2px 8px;white-space:nowrap;">📊 ${esc(lp._hostname)}</span>` : ''}
+          <button class="del-btn" onclick="S.landingPages.splice(${i},1);save();renderLPRows()">×</button>
+        </div>
+        ${isImported ? `<div style="font-size:12px;color:#888580;margin-bottom:10px;padding:6px 8px;background:#f0fdf4;border-radius:6px;">
+          Imported from analytics · Bounce rate = 100% − engagement rate · CTR = button clicks ÷ users · You can override any value below.
+        </div>` : ''}
+        <div class="field-row c3">
+          <div class="field"><label>Users (Clicks)</label><input type="number" value="${lp.clicks||''}" step="1" onchange="S.landingPages[${i}].clicks=+this.value;save()" placeholder="0"></div>
+          <div class="field"><label>Button CTR (%)</label><input type="number" value="${lp.ctr||''}" step="0.1" onchange="S.landingPages[${i}].ctr=+this.value;save()" placeholder="0"></div>
+          <div class="field"><label>Bounce Rate (%)</label><input type="number" value="${lp.bounceRate||''}" step="0.1" onchange="S.landingPages[${i}].bounceRate=+this.value;save()" placeholder="0"></div>
+        </div>
+        <div class="field-row c3">
+          <div class="field"><label>Avg. Time on Page (sec)</label><input type="number" value="${lp.avgTime||''}" step="1" onchange="S.landingPages[${i}].avgTime=+this.value;save()" placeholder="0"></div>
+          <div class="field"><label>Sessions (LP Views)</label><input type="number" value="${lp.lpViews||''}" step="1" onchange="S.landingPages[${i}].lpViews=+this.value;save()" placeholder="0"></div>
+          <div class="field"><label>LP View Rate (%)</label><input type="number" value="${lp.lpViewRate||''}" step="0.1" onchange="S.landingPages[${i}].lpViewRate=+this.value;save()" placeholder="0"></div>
+        </div>
+      </div>`;
+    }).join('');
 }
 function addLP(){ if(!S.landingPages)S.landingPages=[]; S.landingPages.push({name:'',clicks:'',ctr:'',bounceRate:'',avgTime:'',lpViews:'',lpViewRate:''}); save(); renderLPRows(); }
 
@@ -777,8 +1045,30 @@ function _buildDocx() {
   const fmtN = (n,d=2) => Number(n||0).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
   const pctN = (c,p) => { if(!+p) return '—'; const v=((c-p)/Math.abs(p))*100; return (v>=0?'▲ +':'▼ ')+Math.abs(v).toFixed(1)+'%'; };
   const xe   = s => String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  const pTot = s.regions.reduce((a,r)=>({spend:a.spend+(+r.pSpend||0),reg:a.reg+(+r.pReg||0),dep:a.dep+(+r.pDep||0),deps:a.deps+(+r.pDeps||0)}),{spend:0,reg:0,dep:0,deps:0});
-  const cTot = s.regions.filter(r=>!r.paused).reduce((a,r)=>({spend:a.spend+(+r.cSpend||0),reg:a.reg+(+r.cReg||0),dep:a.dep+(+r.cDep||0),deps:a.deps+(+r.cDeps||0)}),{spend:0,reg:0,dep:0,deps:0});
+  // Migrate old regions
+  s.regions = s.regions.map(r => r.weeks ? r : {
+    name:r.name,
+    weeks:[
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:r.pSpend||0,reg:r.pReg||0,dep:r.pDep||0,deps:r.pDeps||0,paused:false},
+      {spend:r.cSpend||0,reg:r.cReg||0,dep:r.cDep||0,deps:r.cDeps||0,paused:r.paused||false},
+    ]
+  });
+  const wLabels = s.weekLabels||['Week 1','Week 2','Week 3','Week 4'];
+  // Week totals per column
+  const wTots = [0,1,2,3].map(wi=>s.regions.reduce((a,r)=>{
+    const w=r.weeks[wi]||{};
+    if(!w.paused){a.spend+=(+w.spend||0);a.reg+=(+w.reg||0);a.dep+=(+w.dep||0);a.deps+=(+w.deps||0);}
+    return a;
+  },{spend:0,reg:0,dep:0,deps:0}));
+  // Monthly totals (all 4 weeks summed)
+  const mTot = {spend:0,reg:0,dep:0,deps:0};
+  wTots.forEach(t=>{mTot.spend+=t.spend;mTot.reg+=t.reg;mTot.dep+=t.dep;mTot.deps+=t.deps;});
+  // Latest week (w4) for "this week" headline
+  const cTot = wTots[3];
+  // Previous week (w3) for WoW comparison
+  const pTot = wTots[2];
   const bdgTotal = s.budget.reduce((a,b)=>a+(+b.daily||0),0);
   const ig1c=ig.f1?ig.s1/ig.f1:0, ig2c=ig.f2?ig.s2/ig.f2:0, ig3c=ig.f3?ig.s3/ig.f3:0;
 
@@ -915,7 +1205,10 @@ function _buildDocx() {
   </w:tbl>`;
 
   // ── Monthly table ───────────────────────────────────────
+  const wSpendP = s.regions.reduce((a,r)=>a+(+r.pSpend||0),0)*4;
+  const wSpendC = s.regions.reduce((a,r)=>a+(+r.cSpend||0),0)*4;
   const mRows = [
+    ['Total ad spend ($)',  wSpendP, wSpendC, 0, false],
     ['Registrations',       m.regP,m.regC,0,true],
     ['Accounts opened',     m.accP,m.accC,0,true],
     ['Total deposits ($)',  m.depP,m.depC,0,true],
@@ -928,11 +1221,11 @@ function _buildDocx() {
     <w:tr>${hc('Metric',3120)}${hc(s.monthP||'Previous Month',2080)}${hc(s.monthC||'This Month',2080)}${hc('Change',2080)}</w:tr>
     ${mRows.map(([lbl,p,c,dec,goodUp],i)=>{
       const pv=pctN(c,p); const up=Number(c)>=Number(p); const good=goodUp?up:!up;
-      const bg=i%2===0?'F2F2F2':'FFFFFF';
+      const bg=i===0?'E8E8E8':i%2===0?'F2F2F2':'FFFFFF';
       const chgBg=good?'E8F5EE':'FEF2F2'; const chgColor=good?'166534':'991B1B';
       return `<w:tr>
-        ${tc(lbl,3120,{bg})}
-        ${tc(fmtN(p,dec)||'—',2080,{bg,center:true})}
+        ${tc(lbl,3120,{bg,bold:i===0})}
+        ${tc(fmtN(p,dec)||'—',2080,{bg,center:true,bold:i===0})}
         ${tc(fmtN(c,dec)||'—',2080,{bold:true,bg,center:true})}
         ${tc(pv,2080,{bold:true,bg:chgBg,color:chgColor,center:true})}
       </w:tr>`;
@@ -1166,8 +1459,26 @@ function renderReport() {
   collect();
   const s=S, m=s.monthly, ig=s.ig;
 
-  const pTot = s.regions.reduce((a,r)=>({spend:a.spend+(+r.pSpend||0),reg:a.reg+(+r.pReg||0),dep:a.dep+(+r.pDep||0),deps:a.deps+(+r.pDeps||0)}),{spend:0,reg:0,dep:0,deps:0});
-  const cTot = s.regions.filter(r=>!r.paused).reduce((a,r)=>({spend:a.spend+(+r.cSpend||0),reg:a.reg+(+r.cReg||0),dep:a.dep+(+r.cDep||0),deps:a.deps+(+r.cDeps||0)}),{spend:0,reg:0,dep:0,deps:0});
+  // Migrate regions to 4-week format
+  s.regions = s.regions.map(r => r.weeks ? r : {
+    name:r.name,
+    weeks:[
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:'',reg:'',dep:'',deps:'',paused:false},
+      {spend:r.pSpend||0,reg:r.pReg||0,dep:r.pDep||0,deps:r.pDeps||0,paused:false},
+      {spend:r.cSpend||0,reg:r.cReg||0,dep:r.cDep||0,deps:r.cDeps||0,paused:r.paused||false},
+    ]
+  });
+  const wLabels = s.weekLabels||['Week 1','Week 2','Week 3','Week 4'];
+  const wTots = [0,1,2,3].map(wi=>s.regions.reduce((a,r)=>{
+    const w=r.weeks[wi]||{};
+    if(!w.paused){a.spend+=(+w.spend||0);a.reg+=(+w.reg||0);a.dep+=(+w.dep||0);a.deps+=(+w.deps||0);}
+    return a;
+  },{spend:0,reg:0,dep:0,deps:0}));
+  const mTot={spend:0,reg:0,dep:0,deps:0};
+  wTots.forEach(t=>{mTot.spend+=t.spend;mTot.reg+=t.reg;mTot.dep+=t.dep;mTot.deps+=t.deps;});
+  const cTot = wTots[3]; // latest week
+  const pTot = wTots[2]; // previous week
   const bdgTotal = s.budget.reduce((a,b)=>a+(+b.daily||0),0);
   const BAR_COLS = ['#d97706','#2563eb','#7c3aed','#d97706','#2563eb','#7c3aed','#10b981','#ef4444'];
 
@@ -1182,31 +1493,94 @@ function renderReport() {
       const p = bdgTotal ? Math.round((b.daily/bdgTotal)*100) : 0;
       return `<div class="b-card"><div class="b-name">${esc(b.name)}</div><div class="b-val">$${fmt(b.daily,0)}</div><div class="b-bar-track"><div class="b-bar-fill" style="width:${p}%;background:${BAR_COLS[i%BAR_COLS.length]};"></div></div><div class="b-pct">${p}% of total</div></div>`;
     }).join('');
+  const budgetTotalRow = s.budget.length === 0 ? '' :
+    `<div style="display:flex;align-items:center;justify-content:space-between;margin-top:14px;padding:12px 18px;background:var(--text);border-radius:10px;">
+      <span style="font-size:14px;font-weight:500;color:#fff;">Total daily budget across all campaigns</span>
+      <span style="font-size:22px;font-weight:500;color:#fff;letter-spacing:-0.5px;">$${fmt(bdgTotal,0)} / day</span>
+    </div>`;
 
-  // Region rows
-  const regionRows = s.regions.map(r=>`<tr>
-    <td>${esc(r.name)}</td>
-    <td class="cdiv" style="border-left:2px solid var(--border)">${fmt(r.pSpend)}</td><td>${r.pReg||0}</td><td>${r.pDep||0}</td><td>${fmt(r.pDeps)}</td>
-    ${r.paused ? `<td class="cdiv pcell" colspan="4">Paused this week</td>` : `<td class="cdiv">${fmt(r.cSpend)}</td><td>${r.cReg||0}</td><td>${r.cDep||0}</td><td>${fmt(r.cDeps)}</td>`}
-  </tr>`).join('');
+  // Region rows — 4 weeks + monthly total
+  const regionRows = s.regions.map(r=>{
+    const wCells = [0,1,2,3].map(wi=>{
+      const w=r.weeks[wi]||{};
+      if(w.paused) return `<td class="cdiv" colspan="2" style="color:var(--muted);font-style:italic;font-size:12px;text-align:center;padding:10px 8px;">Paused</td>`;
+      return `<td class="cdiv" style="border-left:1px solid var(--border)">${fmt(w.spend||0,0)}</td><td>${fmt(w.deps||0,0)}</td>`;
+    }).join('');
+    const rSpend=r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.spend||0),0);
+    const rReg  =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.reg||0),0);
+    const rDep  =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.dep||0),0);
+    const rDeps =r.weeks.filter(w=>!w.paused).reduce((a,w)=>a+(+w.deps||0),0);
+    return `<tr>
+      <td style="font-weight:600">${esc(r.name)}</td>
+      ${wCells}
+      <td class="cdiv" style="font-weight:600;background:#faf9f6;">${fmt(rSpend,0)}</td>
+      <td style="background:#faf9f6;">${rReg}</td>
+      <td style="background:#faf9f6;">${rDep}</td>
+      <td style="font-weight:600;background:#faf9f6;">${fmt(rDeps,0)}</td>
+    </tr>`;
+  }).join('');
 
-  // Monthly rows
+  // Monthly rows — use auto-summed totals from 4 weeks
   const mRows = [
-    ['Registrations',       m.regP,m.regC,0,true],
-    ['Accounts opened',     m.accP,m.accC,0,true],
-    ['Total deposits ($)',  m.depP,m.depC,0,true],
-    ['Withdrawals ($)',     m.outP,m.outC,0,false],
-    ['Net deposits ($)',    m.netP,m.netC,0,true],
-    ['Trading volume (lot)',m.lotP,m.lotC,3,true],
-  ].map(([lbl,p,c,dec,goodUp])=>{
-    const pv=pct(c,p); const up=isUp(c,p); const good=goodUp?up:!up;
-    return `<tr><td>${lbl}</td><td>${fmt(p,dec)||'—'}</td><td>${fmt(c,dec)||'—'}</td><td><span class="bdg ${good?'bdg-up':'bdg-dn'}">${pv}</span></td></tr>`;
+    ['Total ad spend ($)',    m.spendP||0, mTot.spend,   0, false],
+    ['Registrations',         m.regP||0,   mTot.reg,     0, true],
+    ['Depositing users',      m.depP||0,   mTot.dep,     0, true],
+    ['Total deposits ($)',    m.depsP||0,  mTot.deps,    0, true],
+    ['Accounts opened',       m.accP||0,   m.accC||0,    0, true],
+    ['Withdrawals ($)',        m.outP||0,   m.outC||0,    0, false],
+    ['Net deposits ($)',       m.netP||0,   m.netC||0,    0, true],
+    ['Trading volume (lot)',   m.lotP||0,   m.lotC||0,    3, true],
+  ].map(([lbl,p,cv,dec,goodUp],i)=>{
+    const pv=pct(cv,p); const up=isUp(cv,p); const good=goodUp?up:!up;
+    const isAuto = i<4;
+    return `<tr style="${i<4?'background:#f0fdf4;':i%2===0?'background:#faf9f6;':''}">
+      <td>${lbl}${isAuto?' <span style="font-size:11px;color:#166534;font-weight:500;">(auto)</span>':''}</td>
+      <td>${fmt(p,dec)||'—'}</td>
+      <td style="font-weight:600">${fmt(cv,dec)||'—'}</td>
+      <td><span class="bdg ${good?'bdg-up':'bdg-dn'}">${pv}</span></td>
+    </tr>`;
   }).join('');
 
   // LP section
+  // ── LP Section: chart-first management view ──────────────────────────
+  let lpChartIndex = 0;
   const lpSection = (s.landingPages&&s.landingPages.length>0) ? `
   <div class="sec">
-    <div class="sec-hdr"><span class="sec-ttl">${esc(s.lpTitle||'Landing Page Insights')}</span><span class="sec-sub">Ad click quality analysis</span></div>
+    <div class="sec-hdr">
+      <span class="sec-ttl">${esc(s.lpTitle||'Landing Page Insights')}</span>
+      <span class="sec-sub">How well are our pages turning visitors into leads?</span>
+    </div>
+
+    ${s.landingPages.length > 1 ? (() => {
+      // ── Summary comparison strip (only when >1 page) ──
+      return `<div style="display:grid;grid-template-columns:repeat(${Math.min(s.landingPages.length,3)},minmax(0,1fr));gap:12px;margin-bottom:24px;">
+        ${s.landingPages.map(lp=>{
+          const engaged = Math.round((lp.lpViews||0)*(1-(lp.bounceRate||0)/100));
+          const engRate = lp.clicks ? Math.round((engaged/(lp.clicks||1))*100) : 0;
+          const score = Math.round((engRate*0.5)+((lp.avgTime>=120?100:lp.avgTime>=60?75:lp.avgTime>=30?40:15)*0.3)+(((100-(lp.bounceRate||0))/100)*100*0.2));
+          const scoreColor = score>=65?'#166534':score>=40?'#92400e':'#991b1b';
+          const scoreBg    = score>=65?'#f0fdf4':score>=40?'#fffbeb':'#fef2f2';
+          const tMin=Math.floor((lp.avgTime||0)/60),tSec=(lp.avgTime||0)%60;
+          const tLbl=tMin>0?tMin+'m '+tSec+'s':tSec+'s';
+          return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px 18px;">
+            <div style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(lp.name)}</div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+              <div style="font-size:11px;color:var(--muted);">Engagement score</div>
+              <div style="font-size:22px;font-weight:600;color:${scoreColor};">${score}<span style="font-size:13px;font-weight:400;">/100</span></div>
+            </div>
+            <div style="height:6px;background:var(--border);border-radius:3px;overflow:hidden;margin-bottom:12px;">
+              <div style="height:100%;width:${score}%;background:${scoreColor};border-radius:3px;"></div>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:var(--muted);">↩ ${lp.bounceRate||0}% bounce</span>
+              <span style="color:var(--muted);">⏱ ${tLbl}</span>
+              <span style="color:${scoreColor};font-weight:500;">${engRate}% engaged</span>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    })() : ''}
+
     ${s.landingPages.map(lp=>{
       const engaged  = Math.round((lp.lpViews||0)*(1-(lp.bounceRate||0)/100));
       const dropped  = (lp.clicks||0)-(lp.lpViews||0);
@@ -1215,49 +1589,135 @@ function renderReport() {
       const bncGood  = (lp.bounceRate||0)<50;
       const tMin=Math.floor((lp.avgTime||0)/60), tSec=(lp.avgTime||0)%60;
       const tLbl = tMin>0?tMin+'m '+tSec+'s':tSec+'s';
-      const funnel=[
-        {lbl:'Clicked ad',       n:lp.clicks||0, pct:100, col:'#374151'},
-        {lbl:'Page loaded',      n:lp.lpViews||0, pct:Math.round(lp.lpViewRate||0), col:'#374151'},
-        {lbl:'Stayed & engaged', n:engaged, pct:lp.clicks?Math.round((engaged/(lp.clicks||1))*100):0, col:bncGood?'#166534':'#991b1b'},
-      ];
-      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:24px 28px;margin-bottom:14px;">
-        <div style="font-size:16px;font-weight:600;margin-bottom:18px;">📄 &nbsp;${esc(lp.name)}</div>
-        <div class="kpi-grid" style="grid-template-columns:repeat(6,minmax(0,1fr));margin-bottom:20px;">
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">Clicks</div><div class="kpi-val" style="font-size:24px;">${Number(lp.clicks||0).toLocaleString()}</div><div class="kpi-prv">From ad impressions</div></div>
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">CTR</div><div class="kpi-val" style="font-size:24px;">${lp.ctr||0}%</div><div class="kpi-prv">Of impressions clicked</div></div>
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">Page views</div><div class="kpi-val" style="font-size:24px;">${Number(lp.lpViews||0).toLocaleString()}</div><div class="kpi-prv">${lp.lpViewRate||0}% of clicks loaded</div></div>
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">Bounce rate</div><div class="kpi-val ${bncGood?'up':'dn'}" style="font-size:24px;">${lp.bounceRate||0}%</div><div class="kpi-prv">${bncGood?'Below 50% — decent':'Above 50% — needs work'}</div></div>
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">Avg. time on page</div><div class="kpi-val ${timeGood?'up':'dn'}" style="font-size:24px;">${tLbl}</div><div class="kpi-prv">${timeGood?'Decent engagement':'Very low — investigate'}</div></div>
-          <div class="kpi" style="padding:14px 16px;"><div class="kpi-lbl">Stayed &amp; engaged</div><div class="kpi-val" style="font-size:24px;">${Number(engaged).toLocaleString()}</div><div class="kpi-prv">${lp.clicks?Math.round((engaged/(lp.clicks||1))*100):0}% of all clicks</div></div>
-        </div>
-        <div style="margin-bottom:16px;">
-          <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Visitor funnel</div>
-          ${funnel.map(f=>`<div style="display:flex;align-items:center;gap:12px;margin-bottom:7px;">
-            <div style="font-size:13px;color:var(--sub);width:130px;flex-shrink:0;">${f.lbl}</div>
-            <div style="flex:1;background:var(--border);border-radius:4px;height:26px;overflow:hidden;">
-              <div style="height:100%;width:${f.pct}%;background:${f.col};border-radius:4px;display:flex;align-items:center;padding:0 10px;">
-                <span style="font-size:12px;font-weight:600;color:#fff;white-space:nowrap;">${Number(f.n).toLocaleString()}</span>
-              </div>
-            </div>
-            <div style="font-size:13px;font-weight:600;color:var(--sub);width:34px;text-align:right;">${f.pct}%</div>
-          </div>`).join('')}
-          <div style="display:flex;align-items:center;gap:12px;margin-top:4px;opacity:0.7;">
-            <div style="font-size:13px;color:var(--dn);width:130px;flex-shrink:0;">Did not engage</div>
-            <div style="flex:1;background:var(--dn-bg);border:1px solid var(--dn-bd);border-radius:4px;height:26px;display:flex;align-items:center;padding:0 10px;">
-              <span style="font-size:12px;font-weight:600;color:var(--dn);">${Number(bounced).toLocaleString()} bounced &nbsp;·&nbsp; ${Number(dropped).toLocaleString()} never loaded the page</span>
-            </div>
-            <div style="font-size:13px;font-weight:600;color:var(--dn);width:34px;text-align:right;">${lp.clicks?Math.round(((bounced+dropped)/(lp.clicks||1))*100):0}%</div>
+      const engRate  = lp.clicks ? Math.round((engaged/(lp.clicks||1))*100) : 0;
+      const lostRate = 100 - engRate;
+      const score    = Math.round((engRate*0.5)+((lp.avgTime>=120?100:lp.avgTime>=60?75:lp.avgTime>=30?40:15)*0.3)+(((100-(lp.bounceRate||0))/100)*100*0.2));
+      const scoreColor = score>=65?'#166534':score>=40?'#92400e':'#991b1b';
+      const verdict = score>=65 ? '✅ This page is performing well. Visitors are engaging meaningfully after clicking the ad.'
+        : score>=40 ? `⚠️ Mixed performance. The page is getting traffic but losing too many visitors — likely a mismatch between the ad and landing page content.`
+        : `🔴 This page needs urgent attention. ${lostRate}% of visitors who clicked the ad left without engaging. Consider a full redesign or A/B test.`;
+
+      const chartId = 'lp-donut-'+(lpChartIndex++);
+      const chartId2 = 'lp-time-'+(lpChartIndex++);
+
+      return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:26px 28px;margin-bottom:16px;">
+
+        <!-- Header row -->
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:20px;gap:16px;">
+          <div>
+            <div style="font-size:16px;font-weight:600;margin-bottom:4px;">${esc(lp.name)}</div>
+            ${lp._hostname?`<div style="font-size:12px;color:var(--muted);font-family:monospace;">${esc(lp._hostname)}</div>`:''}
+          </div>
+          <div style="text-align:right;flex-shrink:0;">
+            <div style="font-size:11px;color:var(--muted);margin-bottom:2px;">Engagement score</div>
+            <div style="font-size:32px;font-weight:300;letter-spacing:-1px;color:${scoreColor};">${score}<span style="font-size:16px;">/100</span></div>
           </div>
         </div>
-        <div class="${(!bncGood||!timeGood)?'note':'insight'}">
-          ${(!bncGood&&!timeGood)?`⚠️ <strong>Bounce rate (${lp.bounceRate}%) and average time on page (${tLbl}) are both below target.</strong> ${Number(bounced).toLocaleString()} visitors left immediately after landing. The page may not be matching what the ad is promising, or the load speed is too slow. Recommended action: A/B test a redesigned version.`
-          :!bncGood?`⚠️ <strong>Bounce rate of ${lp.bounceRate}% is above the 50% benchmark.</strong> Visitors are arriving but leaving quickly — check whether the page content matches the ad.`
-          :!timeGood?`⚠️ <strong>Average time on page is only ${tLbl}.</strong> Visitors are not reading through the page. Simplify the layout and make the call-to-action more prominent.`
-          :`✅ Bounce rate and time on page are within acceptable ranges. ${Number(engaged).toLocaleString()} visitors (${lp.clicks?Math.round((engaged/(lp.clicks||1))*100):0}% of clicks) engaged meaningfully with the page.`}
+
+        <!-- Main 3-col layout: donut | flow | metrics -->
+        <div style="display:grid;grid-template-columns:200px 1fr 1fr;gap:20px;align-items:start;margin-bottom:20px;">
+
+          <!-- Donut chart: engaged vs lost -->
+          <div style="text-align:center;">
+            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:10px;">Where visitors go</div>
+            <div style="position:relative;width:160px;margin:0 auto;">
+              <canvas id="${chartId}" width="160" height="160"></canvas>
+              <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;pointer-events:none;">
+                <div style="font-size:22px;font-weight:600;color:${scoreColor};">${engRate}%</div>
+                <div style="font-size:10px;color:var(--muted);">engaged</div>
+              </div>
+            </div>
+            <div style="display:flex;flex-direction:column;gap:4px;margin-top:10px;text-align:left;padding:0 8px;">
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;"><span style="width:10px;height:10px;border-radius:2px;background:#166534;flex-shrink:0;"></span> ${Number(engaged).toLocaleString()} stayed &amp; engaged</div>
+              <div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><span style="width:10px;height:10px;border-radius:2px;background:#fca5a5;flex-shrink:0;"></span> ${Number(bounced).toLocaleString()} bounced</div>
+              ${dropped>0?`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><span style="width:10px;height:10px;border-radius:2px;background:#e5e7eb;flex-shrink:0;"></span> ${Number(dropped).toLocaleString()} page didn't load</div>`:''}
+            </div>
+          </div>
+
+          <!-- Traffic flow diagram -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Traffic flow</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              ${[
+                {lbl:'Saw the ad & clicked', n:lp.clicks||0, pct:100, bg:'#374151', txtColor:'#fff', icon:'👆'},
+                {lbl:'Page fully loaded', n:lp.lpViews||0, pct:Math.round(lp.lpViewRate||0), bg:'#4b5563', txtColor:'#fff', icon:'📄'},
+                {lbl:'Stayed & read', n:engaged, pct:engRate, bg:score>=65?'#166534':score>=40?'#92400e':'#991b1b', txtColor:'#fff', icon:score>=65?'✅':score>=40?'⚠️':'🔴'},
+              ].map(f=>`
+              <div>
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:13px;color:var(--sub);">${f.icon} ${f.lbl}</span>
+                  <span style="font-size:13px;font-weight:600;color:var(--text);">${Number(f.n).toLocaleString()} <span style="font-size:11px;color:var(--muted);">(${f.pct}%)</span></span>
+                </div>
+                <div style="height:20px;background:var(--border);border-radius:4px;overflow:hidden;">
+                  <div style="height:100%;width:${f.pct}%;background:${f.bg};border-radius:4px;transition:width 0.6s;"></div>
+                </div>
+              </div>`).join('')}
+              ${bounced>0||dropped>0?`<div style="border-top:1px dashed var(--border);margin-top:2px;padding-top:8px;">
+                <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">
+                  <span style="font-size:13px;color:var(--dn);">❌ Left without action</span>
+                  <span style="font-size:13px;font-weight:600;color:var(--dn);">${Number(bounced+dropped).toLocaleString()} <span style="font-size:11px;">(${lostRate}%)</span></span>
+                </div>
+                <div style="height:20px;background:var(--dn-bg);border:1px solid var(--dn-bd);border-radius:4px;overflow:hidden;">
+                  <div style="height:100%;width:${lostRate}%;background:#fca5a5;border-radius:4px;"></div>
+                </div>
+              </div>`:''}
+            </div>
+          </div>
+
+          <!-- Right: metrics scorecard -->
+          <div>
+            <div style="font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px;">Key metrics</div>
+            <div style="display:flex;flex-direction:column;gap:6px;">
+              ${[
+                {lbl:'Visitors (users)', val:Number(lp.clicks||0).toLocaleString(), sub:'unique ad clicks', ok:null},
+                {lbl:'Bounce rate',      val:(lp.bounceRate||0)+'%', sub:bncGood?'✓ Below 50% target':'✗ Above 50% target', ok:bncGood},
+                {lbl:'Avg. time on page',val:tLbl, sub:timeGood?'✓ Good engagement':'✗ Under 1 min target', ok:timeGood},
+                {lbl:'Button CTR',       val:(lp.ctr||0)+'%', sub:'of visitors clicked a button', ok:(lp.ctr||0)>=3},
+                {lbl:'Sessions loaded',  val:Number(lp.lpViews||0).toLocaleString(), sub:(lp.lpViewRate||0)+'% of clicks loaded ok', ok:null},
+              ].map(m=>`
+              <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:${m.ok===true?'#f0fdf4':m.ok===false?'#fef2f2':'var(--bg)'};border-radius:8px;border:1px solid ${m.ok===true?'#bbf7d0':m.ok===false?'#fecaca':'var(--border)'};">
+                <div>
+                  <div style="font-size:12px;color:var(--sub);">${m.lbl}</div>
+                  <div style="font-size:11px;color:${m.ok===true?'#166534':m.ok===false?'#991b1b':'var(--muted)'};">${m.sub}</div>
+                </div>
+                <div style="font-size:18px;font-weight:600;color:var(--text);">${m.val}</div>
+              </div>`).join('')}
+            </div>
+          </div>
+        </div>
+
+        <!-- Verdict -->
+        <div style="padding:12px 16px;border-radius:8px;background:${score>=65?'#f0fdf4':score>=40?'#fffbeb':'#fef2f2'};border:1px solid ${score>=65?'#bbf7d0':score>=40?'#fde68a':'#fecaca'};font-size:14px;color:${scoreColor};line-height:1.6;">
+          ${verdict}
         </div>
       </div>`;
     }).join('')}
   </div>` : '';
+
+  // ── Register LP donut charts after render ──
+  function renderLPCharts() {
+    let idx = 0;
+    (s.landingPages||[]).forEach(lp => {
+      const engaged  = Math.round((lp.lpViews||0)*(1-(lp.bounceRate||0)/100));
+      const dropped  = (lp.clicks||0)-(lp.lpViews||0);
+      const bounced  = (lp.lpViews||0)-engaged;
+      const engRate  = lp.clicks ? Math.round((engaged/(lp.clicks||1))*100) : 0;
+      const score    = Math.round((engRate*0.5)+((lp.avgTime>=120?100:lp.avgTime>=60?75:lp.avgTime>=30?40:15)*0.3)+(((100-(lp.bounceRate||0))/100)*100*0.2));
+
+      const el = document.getElementById('lp-donut-'+idx);
+      if (el && !el._chartDone) {
+        new Chart(el, {
+          type:'doughnut',
+          data:{ datasets:[{ data:[engaged, bounced, Math.max(dropped,0)],
+            backgroundColor: [score>=65?'#166534':score>=40?'#92400e':'#991b1b', '#fca5a5', '#e5e7eb'],
+            borderWidth:0, hoverOffset:4 }]},
+          options:{ responsive:false, cutout:'72%', plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+c.parsed.toLocaleString()+' visitors'}}}}
+        });
+        el._chartDone = true;
+      }
+      idx += 2;
+    });
+  }
 
   // Projects
   const projHTML = s.projects.map(p=>{
@@ -1293,6 +1753,7 @@ function renderReport() {
         <div><div class="b-tot-lbl">Total daily budget</div><div class="b-tot-val">$${fmt(bdgTotal,0)}</div></div>
       </div>
       <div class="b-grid" style="grid-template-columns:repeat(${bcols},minmax(0,1fr));">${budgetHTML}</div>
+      ${budgetTotalRow}
     </div>
 
     <div class="sec">
@@ -1303,32 +1764,40 @@ function renderReport() {
         ${KC('Depositing users',cTot.dep,pct(cTot.dep,pTot.dep),isUp(cTot.dep,pTot.dep),true,'Last week: '+pTot.dep)}
         ${KC('Total deposits','$'+fmt(cTot.deps,0),pct(cTot.deps,pTot.deps),isUp(cTot.deps,pTot.deps),true,'Last week: $'+fmt(pTot.deps,0))}
       </div>
-      ${s.regions.filter(r=>r.paused).length>0?`<div class="insight">Numbers reflect active channels only. <strong>${s.regions.filter(r=>r.paused).map(r=>r.name).join(' and ')}</strong> ${s.regions.filter(r=>r.paused).length===1?'was':'were'} paused this week.</div>`:''}
+      ${(()=>{const pausedW4=s.regions.filter(r=>r.weeks[3]&&r.weeks[3].paused); return pausedW4.length>0?`<div class="insight">This week's figures reflect active channels only. <strong>${pausedW4.map(r=>r.name).join(' and ')}</strong> ${pausedW4.length===1?'was':'were'} paused in Week 4.</div>`:'';})()}
     </div>
 
     <div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">Week-over-Week by Region</span></div>
+      <div style="overflow-x:auto;">
       <div class="tbl-wrap"><table class="rt">
         <thead>
           <tr class="grp">
             <th class="first" rowspan="2">Region</th>
-            <th colspan="4">Last Week — ${esc(s.weekP||'—')}</th>
-            <th colspan="4" class="dk2">This Week — ${esc(s.weekC||'—')}</th>
+            ${wLabels.map((lbl,wi)=>`<th colspan="2" style="text-align:center;background:${wi===3?'#111':'#333'};">${esc(lbl)}</th>`).join('')}
+            <th colspan="4" style="text-align:center;background:#1a4d2e;">Monthly Total (${esc(s.monthC||'This Month')})</th>
           </tr>
           <tr>
-            <th class="cdiv" style="border-left:2px solid #555">Spend ($)</th><th>Reg.</th><th>Depositors</th><th>Deposits ($)</th>
-            <th class="cdiv">Spend ($)</th><th>Reg.</th><th>Depositors</th><th>Deposits ($)</th>
+            ${wLabels.map(()=>'<th style="font-size:11px;">Spend ($)</th><th style="font-size:11px;">Deposits ($)</th>').join('')}
+            <th style="font-size:11px;background:#eaf5ee;">Spend ($)</th>
+            <th style="font-size:11px;background:#eaf5ee;">Reg.</th>
+            <th style="font-size:11px;background:#eaf5ee;">Dep. Users</th>
+            <th style="font-size:11px;background:#eaf5ee;">Deposits ($)</th>
           </tr>
         </thead>
         <tbody>
           ${regionRows}
           <tr class="tot">
             <td>Total</td>
-            <td class="cdiv" style="border-left:2px solid var(--border)">${fmt(pTot.spend)}</td><td>${pTot.reg}</td><td>${pTot.dep}</td><td>${fmt(pTot.deps)}</td>
-            <td class="cdiv">${fmt(cTot.spend)}</td><td>${cTot.reg}</td><td>${cTot.dep}</td><td>${fmt(cTot.deps)}</td>
+            ${wTots.map(t=>`<td class="cdiv">${fmt(t.spend,0)}</td><td>${fmt(t.deps,0)}</td>`).join('')}
+            <td class="cdiv" style="background:#f0fdf4;font-weight:700;">${fmt(mTot.spend,0)}</td>
+            <td style="background:#f0fdf4;">${mTot.reg}</td>
+            <td style="background:#f0fdf4;">${mTot.dep}</td>
+            <td style="background:#f0fdf4;font-weight:700;">${fmt(mTot.deps,0)}</td>
           </tr>
         </tbody>
       </table></div>
+      </div>
       <div class="two-col">
         <div class="chart-card"><div class="chart-ttl">Ad spend by region ($)</div><div class="chart-wrap"><canvas id="cSpend"></canvas></div></div>
         <div class="chart-card"><div class="chart-ttl">Registrations by region</div><div class="chart-wrap"><canvas id="cReg"></canvas></div></div>
@@ -1338,10 +1807,10 @@ function renderReport() {
     <div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">${esc(s.monthC||'This Month')} Summary</span><span class="sec-sub">vs ${esc(s.monthP||'last month')}</span></div>
       <div class="kpi-grid">
-        ${KC('Registrations',m.regC,pct(m.regC,m.regP),true,true,'Last month: '+(m.regP||'—'))}
-        ${KC('Accounts opened',m.accC,pct(m.accC,m.accP),true,true,'Last month: '+(m.accP||'—'))}
-        ${KC('Net deposits','$'+fmt(m.netC,0),pct(m.netC,m.netP),true,true,'Last month: $'+fmt(m.netP,0))}
-        ${KC('Trading volume',fmt(m.lotC,1)+' lot',pct(m.lotC,m.lotP),true,true,'Last month: '+(m.lotP||'—'))}
+        ${KC('Total ad spend','$'+fmt(mTot.spend,0),pct(mTot.spend,m.spendP),isUp(mTot.spend,m.spendP),false,'Last month: $'+fmt(m.spendP||0,0))}
+        ${KC('Registrations',mTot.reg,pct(mTot.reg,m.regP),true,true,'Last month: '+(m.regP||'—'))}
+        ${KC('Depositing users',mTot.dep,pct(mTot.dep,m.depP),true,true,'Last month: '+(m.depP||'—'))}
+        ${KC('Total deposits','$'+fmt(mTot.deps,0),pct(mTot.deps,m.depsP),true,true,'Last month: $'+fmt(m.depsP||0,0))}
       </div>
       <div class="two-col">
         <div class="tbl-wrap" style="margin-bottom:0;"><table class="rt">
@@ -1403,21 +1872,23 @@ function renderReport() {
     </div>`:''}
   `;
 
+  // LP donut charts
+  requestAnimationFrame(() => { if(typeof renderLPCharts==='function') renderLPCharts(); });
+
   // Charts
   const GR='#c8c5bc', DK='#374151';
   const AX={ticks:{color:'#9b9890',font:{size:12,family:'Inter'}},grid:{color:'rgba(0,0,0,0.05)'}};
   const LG={display:true,position:'top',align:'start',labels:{color:'#6b6860',font:{size:12,family:'Inter'},boxWidth:11,boxHeight:11,padding:14}};
   const rl=s.regions.map(r=>r.name);
+  const wColors=['#c8c5bc','#9b9890','#555450','#111110'];
 
-  CHARTS.push(new Chart(document.getElementById('cSpend'),{type:'bar',data:{labels:rl,datasets:[
-    {label:'Last week',data:s.regions.map(r=>+r.pSpend||0),backgroundColor:GR,borderRadius:4},
-    {label:'This week',data:s.regions.map(r=>r.paused?0:(+r.cSpend||0)),backgroundColor:DK,borderRadius:4},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG,tooltip:{callbacks:{label:c=>' $'+c.parsed.y.toFixed(2)}}},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}}));
+  CHARTS.push(new Chart(document.getElementById('cSpend'),{type:'bar',data:{labels:rl,datasets:
+    wLabels.map((lbl,wi)=>({label:lbl,data:s.regions.map(r=>(r.weeks[wi]&&!r.weeks[wi].paused)?(+r.weeks[wi].spend||0):0),backgroundColor:wColors[wi],borderRadius:3}))
+  ,},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG,tooltip:{callbacks:{label:c=>' $'+c.parsed.y.toFixed(2)}}},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}}));
 
-  CHARTS.push(new Chart(document.getElementById('cReg'),{type:'bar',data:{labels:rl,datasets:[
-    {label:'Last week',data:s.regions.map(r=>+r.pReg||0),backgroundColor:GR,borderRadius:4},
-    {label:'This week',data:s.regions.map(r=>r.paused?0:(+r.cReg||0)),backgroundColor:DK,borderRadius:4},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}}));
+  CHARTS.push(new Chart(document.getElementById('cReg'),{type:'bar',data:{labels:rl,datasets:
+    wLabels.map((lbl,wi)=>({label:lbl,data:s.regions.map(r=>(r.weeks[wi]&&!r.weeks[wi].paused)?(+r.weeks[wi].reg||0):0),backgroundColor:wColors[wi],borderRadius:3}))
+  ,},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}}));
 
   CHARTS.push(new Chart(document.getElementById('cMom'),{type:'bar',data:{labels:['Registrations','Accounts','Net dep ($00s)'],datasets:[
     {label:s.monthP||'Prev',data:[+m.regP||0,+m.accP||0,+((m.netP||0)/100).toFixed(1)],backgroundColor:GR,borderRadius:4},
@@ -1445,10 +1916,10 @@ function KC(label,value,change,isup,goodWhenUp,prev,fc) {
 // VIEW SWITCHING
 // ═══════════════════════════════
 function showView(v) {
-  document.getElementById('view-edit').classList.toggle('active',v==='edit');
-  document.getElementById('view-report').classList.toggle('active',v==='report');
-  document.getElementById('btn-edit').className   = 'btn '+(v==='edit'?'btn-active':'btn-ghost');
-  document.getElementById('btn-report').className = 'btn '+(v==='report'?'btn-active':'btn-ghost');
+  document.getElementById('view-edit').classList.toggle('active',   v==='edit');
+  document.getElementById('view-report').classList.toggle('active', v==='report');
+  document.getElementById('btn-edit').className   = 'btn '+(v==='edit'   ?'btn-active':'btn-ghost');
+  document.getElementById('btn-report').className = 'btn '+(v==='report' ?'btn-active':'btn-ghost');
   if(v==='report'){save();renderReport();}
 }
 
@@ -1493,6 +1964,9 @@ function loadFile(input) {
   };
   reader.readAsText(file);
 }
+
+
+
 
 // INIT
 loadState();
