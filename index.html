@@ -282,30 +282,26 @@ body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); 
     </div>
   </div>
 
-  <!-- Monthly -->
+  <!-- YTD Monthly Summary -->
   <div class="form-section">
     <div class="form-section-head" onclick="tog(this)">
-      <div class="fs-left"><span class="fs-title">📅 Monthly Comparison</span></div>
+      <div class="fs-left"><span class="fs-title">📅 Year-to-Date Monthly Summary</span><span class="fs-badge" id="badge-ytd">0 months</span></div>
       <span class="fs-chev">▼</span>
     </div>
     <div class="form-body">
-      <p style="font-size:13px;color:var(--muted);margin-bottom:12px;">
-        <strong>Ad Spend, Registrations, Depositing Users, and Deposits</strong> are auto-calculated from the 4 weekly region inputs above.
-        Fill in the fields below for metrics that come from other systems (CRM, backoffice).
-      </p>
-      <table class="tbl-in">
-        <thead><tr><th>Metric</th><th>Previous Month</th><th>Current Month (manual)</th><th style="background:#e8f5ee;color:#166534;">Auto from weekly data</th></tr></thead>
-        <tbody>
-          <tr><td class="rl">Total Ad Spend ($)</td><td><input type="number" id="m-spend-p" step="0.01" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;" id="m-spend-auto-cell">auto</td><td id="m-spend-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
-          <tr><td class="rl">Registrations</td>    <td><input type="number" id="m-reg-p" step="1" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-reg-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
-          <tr><td class="rl">Depositing Users</td> <td><input type="number" id="m-dep-p" step="1" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-dep-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
-          <tr><td class="rl">Total Deposits ($)</td><td><input type="number" id="m-deps-p" step="0.01" placeholder="0"></td><td style="background:#f5f5f3;color:#aaa;text-align:center;font-size:12px;font-style:italic;">auto</td><td id="m-deps-auto" style="background:#f0fdf4;font-weight:600;text-align:center;padding:8px;">—</td></tr>
-          <tr><td class="rl">Accounts Opened</td>  <td><input type="number" id="m-acc-p" step="1" placeholder="0"></td><td><input type="number" id="m-acc-c" step="1" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
-          <tr><td class="rl">Withdrawals ($)</td>  <td><input type="number" id="m-out-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-out-c" step="0.01" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
-          <tr><td class="rl">Net Deposits ($)</td> <td><input type="number" id="m-net-p" step="0.01" placeholder="0"></td><td><input type="number" id="m-net-c" step="0.01" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
-          <tr><td class="rl">Trading Vol (lot)</td><td><input type="number" id="m-lot-p" step="0.001" placeholder="0"></td><td><input type="number" id="m-lot-c" step="0.001" placeholder="0"></td><td style="background:#faf9f6;color:#bbb;text-align:center;font-size:12px;">manual</td></tr>
-        </tbody>
-      </table>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+        <div class="field" style="margin:0;flex:0 0 auto;">
+          <label>Year</label>
+          <input type="text" id="f-year-label" placeholder="e.g. 2026" style="width:90px;">
+        </div>
+        <div style="flex:1;font-size:13px;color:var(--muted);">
+          Enter completed months below. <strong style="color:#166534;">Current month (${S.monthC||'this month'})</strong> auto-fills spend, reg, dep users, and deposits from the weekly data above. Other metrics need manual entry.
+        </div>
+        <button class="add-btn" style="margin:0;" onclick="addYTDMonth()">+ Add Month</button>
+      </div>
+      <div style="overflow-x:auto;">
+        <div id="ytd-form-table"></div>
+      </div>
     </div>
   </div>
 
@@ -436,7 +432,7 @@ const BLANK = {
   budget:[],
   regions:[],
   weekLabels:['Week 1','Week 2','Week 3','Week 4 (latest)'],
-  monthly:{ regP:'',regC:'',accP:'',accC:'',depP:'',depC:'',outP:'',outC:'',netP:'',netC:'',lotP:'',lotC:'' },
+  ytd:{ months:[], data:{ spend:[], reg:[], acc:[], deps:[], out:[], net:[], lot:[] } },
   ig:{ s1:'',f1:'',s2:'',f2:'',s3:'',f3:'',start:'',end:'' },
   landingPages:[],
   customTables:[],
@@ -447,60 +443,71 @@ const BLANK = {
 
 const SAMPLE = {
   reporter:'Jesmon',
-  weekC:'Mar 26 – Apr 2, 2026',
-  weekP:'Mar 19 – 26, 2026',
-  monthC:'March',
-  monthP:'February',
+  weekC:'Apr 24 – Apr 29, 2026',
+  weekP:'Apr 17 – Apr 23, 2026',
+  monthC:'April',
+  monthP:'March',
+  yearLabel:'2026',
   igTitle:'LATAM Instagram Follower Growth Campaign',
+  yearLabel:'2026',
   lpTitle:'Landing Page Insights',
   projTitle:'Project Updates',
   ctTitle:'Additional Updates',
   prioTitle:"This Month's Priorities",
   budget:[
-    { name:'IG LATAM Page Followers',          daily:10  },
-    { name:'Retargeting – Indonesia',           daily:50  },
-    { name:'Retargeting – Thailand',            daily:50  },
-    { name:'Million Dollar Live – LATAM',       daily:75  },
-    { name:'Million Dollar Live – Indonesia',   daily:75  },
-    { name:'Million Dollar Live – Thailand',    daily:75  },
+    { name:'Million Dollar Live – Indonesia (Sales)',        daily:200 },
+    { name:'Million Dollar Live – Indonesia (Traffic)',      daily:10  },
+    { name:'Million Dollar Live – Indonesia (Traffic-Test)', daily:10  },
+    { name:'Million Dollar Live – TH (Sales)',               daily:150 },
   ],
-  weekLabels:['Week 1 (Mar 5–12)','Week 2 (Mar 13–19)','Week 3 (Mar 19–26)','Week 4 (Mar 26–Apr 2)'],
+  weekLabels:['Week 1 (Apr 3–10)','Week 2 (Apr 10–17)','Week 3 (Apr 17–24)','Week 4 (Apr 24–29)'],
   regions:[
-    { name:'Indonesia',
+    { name:'ID',
       weeks:[
-        {spend:325.24, reg:2,  dep:4, deps:344.00, paused:false},
-        {spend:393.62, reg:8,  dep:2, deps:217.00, paused:false},
-        {spend:393.62, reg:8,  dep:2, deps:217.00, paused:false},
-        {spend:334.58, reg:7,  dep:2, deps:184.45, paused:false},
+        {spend:707,  reg:30, dep:1, deps:1085, paused:false},
+        {spend:900,  reg:30, dep:2, deps:1955, paused:false},
+        {spend:1385, reg:15, dep:0, deps:959,  paused:false},
+        {spend:1765, reg:12, dep:1, deps:1284, paused:false},
       ]
     },
-    { name:'Thailand',
+    { name:'TH',
       weeks:[
-        {spend:319.29, reg:0,  dep:2, deps:140.00, paused:false},
-        {spend:474.96, reg:2,  dep:2, deps:170.00, paused:false},
-        {spend:474.96, reg:2,  dep:2, deps:170.00, paused:false},
-        {spend:403.72, reg:2,  dep:2, deps:144.50, paused:false},
-      ]
-    },
-    { name:'Philippines',
-      weeks:[
-        {spend:310.29, reg:0,  dep:4, deps:104.00, paused:false},
-        {spend:225.45, reg:2,  dep:3, deps:37.25,  paused:false},
-        {spend:225.45, reg:2,  dep:3, deps:37.25,  paused:false},
-        {spend:0,      reg:0,  dep:0, deps:0,       paused:true },
+        {spend:719,  reg:0,  dep:0, deps:0,   paused:false},
+        {spend:737,  reg:0,  dep:0, deps:140,  paused:false},
+        {spend:1178, reg:0,  dep:0, deps:875,  paused:false},
+        {spend:947,  reg:0,  dep:0, deps:0,    paused:false},
       ]
     },
     { name:'LATAM',
       weeks:[
-        {spend:328.32, reg:2,  dep:0, deps:0,      paused:false},
-        {spend:178.32, reg:5,  dep:1, deps:25.00,  paused:false},
-        {spend:178.32, reg:5,  dep:1, deps:25.00,  paused:false},
-        {spend:0,      reg:0,  dep:0, deps:0,       paused:true },
+        {spend:618, reg:0, dep:0, deps:0, paused:false},
+        {spend:440, reg:0, dep:0, deps:0, paused:false},
+        {spend:331, reg:0, dep:0, deps:0, paused:false},
+        {spend:0,   reg:0, dep:0, deps:0, paused:true },
+      ]
+    },
+    { name:'GB',
+      weeks:[
+        {spend:0, reg:2, dep:0, deps:0, paused:false},
+        {spend:0, reg:0, dep:0, deps:0, paused:false},
+        {spend:0, reg:0, dep:0, deps:0, paused:false},
+        {spend:0, reg:0, dep:0, deps:0, paused:false},
       ]
     },
   ],
-  monthly:{ regP:55, regC:85, accP:23, accC:43, depP:3129, depC:3380, outP:1197, outC:1267, netP:1932, netC:2113, lotP:46.99, lotC:48.28 },
-  ig:{ s1:55, f1:221, s2:93.21, f2:685, s3:60, f3:382, start:1818, end:2200 },
+  ytd:{
+    months:['Jan','Feb','Mar'],
+    data:{
+      spend: [18150.04, 7893.31, 7142.92],
+      reg:   [1695, 702, 55],
+      acc:   [24, 24, 23],
+      deps:  [1317.80, 3266.56, 3129],
+      out:   [445.47, 2111.25, 1197],
+      net:   [872.33, 1155.26, 1932],
+      lot:   [11.69, 41.84, 46.990],
+    }
+  },
+  ig:{ s1:55, f1:221, s2:30, f2:559, s3:30, f3:308, start:5102, end:5410 },
   landingPages:[
     { name:'March Demo Trading 3', clicks:3248, ctr:2.9, bounceRate:70, avgTime:12, lpViews:2910, lpViewRate:89.6 }
   ],
@@ -601,16 +608,8 @@ function collect() {
   S.prioTitle = gv('f-prio-title');
   S.goal      = gv('f-goal');
   const m = S.monthly;
-  // auto fields — computed from weekly data (set in updateAutoTotals)
-  // manual fields
-  m.spendP = gn('m-spend-p');
-  m.regP   = gn('m-reg-p');
-  m.depP   = gn('m-dep-p');
-  m.depsP  = gn('m-deps-p');
-  m.accP   = gn('m-acc-p'); m.accC  = gn('m-acc-c');
-  m.outP   = gn('m-out-p'); m.outC  = gn('m-out-c');
-  m.netP   = gn('m-net-p'); m.netC  = gn('m-net-c');
-  m.lotP   = gn('m-lot-p'); m.lotC  = gn('m-lot-c');
+  // YTD collected live via onchange in renderYTDForm — no extra collect needed
+  S.yearLabel = gv('f-year-label');
   if (!S.weekLabels) S.weekLabels = ['Week 1','Week 2','Week 3','Week 4'];
   [0,1,2,3].forEach(i => {
     const el = document.getElementById('wl'+i);
@@ -650,18 +649,17 @@ function renderForm() {
   const ctTitleEl = document.getElementById('f-ct-title'); if(ctTitleEl) ctTitleEl.value = S.ctTitle||'Additional Updates';
   document.getElementById('f-prio-title').value= S.prioTitle||"This Month's Priorities";
   document.getElementById('f-goal').value      = S.goal;
-  const m=S.monthly||{};
-  const fields=[['m-spend-p','spendP'],['m-reg-p','regP'],['m-dep-p','depP'],['m-deps-p','depsP'],
-    ['m-acc-p','accP'],['m-acc-c','accC'],['m-out-p','outP'],['m-out-c','outC'],
-    ['m-net-p','netP'],['m-net-c','netC'],['m-lot-p','lotP'],['m-lot-c','lotC']];
-  fields.forEach(([id,key])=>{ const el=document.getElementById(id); if(el)el.value=m[key]||''; });
+  const ylEl = document.getElementById('f-year-label');
+  if(ylEl) ylEl.value = S.yearLabel||'';
+  renderYTDForm();
   if (!S.weekLabels) S.weekLabels=['Week 1','Week 2','Week 3','Week 4'];
+  S.yearLabel = gv('f-year-label')||S.yearLabel||'';
   [0,1,2,3].forEach(i=>{ const el=document.getElementById('wl'+i); if(el)el.value=S.weekLabels[i]||('Week '+(i+1)); });
   const ig=S.ig;
   ['s1','f1','s2','f2','s3','f3','start','end'].forEach(k=>{
     const e=document.getElementById('ig-'+k); if(e)e.value=ig[k]||'';
   });
-  renderBudgetRows(); renderRegionRows(); updateAutoTotals(); renderLPRows(); renderCTRows(); renderProjRows(); renderPrioRows();
+  renderBudgetRows(); renderRegionRows(); updateAutoTotals(); renderYTDForm(); renderLPRows(); renderCTRows(); renderProjRows(); renderPrioRows();
   updateBadges();
 }
 
@@ -744,17 +742,13 @@ function updateAutoTotals() {
     });
   });
   const fmtA = (n,d=2)=>Number(n).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d});
-  const set=(id,v)=>{ const el=document.getElementById(id); if(el)el.textContent=v; };
-  set('m-spend-auto','$'+fmtA(totSpend,0));
-  set('m-reg-auto',  String(totReg));
-  set('m-dep-auto',  String(totDep));
-  set('m-deps-auto', '$'+fmtA(totDeps,0));
-  // Also store in monthly for report rendering
-  if(!S.monthly) S.monthly={};
-  S.monthly.spendC  = totSpend;
-  S.monthly.regC    = totReg;
-  S.monthly.depC    = totDep;
-  S.monthly.depsC   = totDeps;
+  // Store auto values in ytd for report rendering
+  if(!S.ytd) S.ytd={months:[],data:{spend:[],reg:[],dep:[],deps:[],acc:[],out:[],net:[],lot:[]}};
+  S.ytd._autoSpend = totSpend;
+  S.ytd._autoReg   = totReg;
+  S.ytd._autoDep   = totDep;
+  S.ytd._autoDeps  = totDeps;
+  renderYTDForm();
 }
 
 function addRegion(){
@@ -766,6 +760,107 @@ function addRegion(){
 // ═══════════════════════════════
 // LANDING PAGES
 // ═══════════════════════════════
+
+
+// ═══════════════════════════════════════════════
+// YTD MONTHLY SUMMARY
+// ═══════════════════════════════════════════════
+const YTD_METRICS = [
+  { key:'spend', label:'Total Ad Spend ($)', auto:true,  dec:0 },
+  { key:'reg',   label:'Registrations',      auto:true,  dec:0 },
+  { key:'dep',   label:'Depositing Users',   auto:true,  dec:0 },
+  { key:'deps',  label:'Total Deposits ($)', auto:true,  dec:0 },
+  { key:'acc',   label:'Accounts Opened',    auto:false, dec:0 },
+  { key:'out',   label:'Withdrawals ($)',     auto:false, dec:2 },
+  { key:'net',   label:'Net Deposits ($)',    auto:false, dec:2 },
+  { key:'lot',   label:'Trading Vol (lot)',   auto:false, dec:3 },
+];
+
+function getYTD() {
+  if (!S.ytd) S.ytd = { months:[], data:{ spend:[],reg:[],dep:[],deps:[],acc:[],out:[],net:[],lot:[] } };
+  if (!S.ytd.data) S.ytd.data = {};
+  YTD_METRICS.forEach(m => { if(!S.ytd.data[m.key]) S.ytd.data[m.key]=[]; });
+  return S.ytd;
+}
+
+function addYTDMonth() {
+  const ytd = getYTD();
+  ytd.months.push('');
+  YTD_METRICS.forEach(m => ytd.data[m.key].push(''));
+  save(); renderYTDForm(); updateAutoTotals();
+}
+
+function delYTDMonth(i) {
+  const ytd = getYTD();
+  ytd.months.splice(i,1);
+  YTD_METRICS.forEach(m => ytd.data[m.key].splice(i,1));
+  save(); renderYTDForm(); updateAutoTotals();
+}
+
+function renderYTDForm() {
+  const ytd = getYTD();
+  const el = document.getElementById('ytd-form-table');
+  if (!el) return;
+  const badge = document.getElementById('badge-ytd');
+  if (badge) badge.textContent = ytd.months.length + ' month' + (ytd.months.length!==1?'s':'');
+
+  if (ytd.months.length === 0) {
+    el.innerHTML = `<p style="font-size:13px;color:var(--faint);margin-bottom:10px;">No months added yet. Click "+ Add Month" to add historical months (e.g. Jan, Feb, Mar).</p>`;
+    return;
+  }
+
+  // Build table: rows = metrics, cols = months + current (auto)
+  const colW = 110;
+  let html = `<table class="tbl-in" style="min-width:${400+ytd.months.length*colW}px;">
+    <thead>
+      <tr>
+        <th style="min-width:160px;">Metric</th>
+        ${ytd.months.map((m,i)=>`<th style="min-width:${colW}px;">
+          <div style="display:flex;align-items:center;gap:4px;">
+            <input type="text" value="${esc(m)}" onchange="S.ytd.months[${i}]=this.value;save()" placeholder="Month" style="width:70px;font-weight:600;font-size:12px;border:none;background:transparent;outline:none;">
+            <button class="del-btn" style="font-size:13px;" onclick="delYTDMonth(${i})">×</button>
+          </div>
+        </th>`).join('')}
+        <th style="min-width:${colW}px;background:#f0fdf4;color:#166534;">${esc(S.monthC||'Current')}<br><span style="font-size:10px;font-weight:400;">auto</span></th>
+        <th style="min-width:70px;background:#faf9f6;">Change</th>
+        <th style="min-width:${colW}px;background:#faf9f6;">YTD Total</th>
+      </tr>
+    </thead>
+    <tbody>`;
+
+  // Auto values from weekly
+  const autoVals = {
+    spend: S.ytd?._autoSpend||0,
+    reg:   S.ytd?._autoReg||0,
+    dep:   S.ytd?._autoDep||0,
+    deps:  S.ytd?._autoDeps||0,
+  };
+
+  YTD_METRICS.forEach(metric => {
+    const vals = ytd.data[metric.key] || [];
+    const prevVal = vals.length>0 ? +vals[vals.length-1]||0 : 0;
+    const currVal = metric.auto ? autoVals[metric.key] : null;
+    const allVals = [...vals.map(v=>+v||0), metric.auto ? autoVals[metric.key] : (currVal||0)];
+    const total   = allVals.reduce((a,b)=>a+b,0);
+    const pct     = prevVal>0 ? ((( metric.auto?autoVals[metric.key]:0 )-prevVal)/prevVal*100) : null;
+    const chg     = pct!==null ? (pct>=0?'▲ +':'▼ ')+Math.abs(pct).toFixed(1)+'%' : '—';
+    const chgCol  = pct===null?'#888':pct>=0?'#166534':'#991b1b';
+
+    html += `<tr>
+      <td class="rl" style="font-size:12px;">${metric.label}${metric.auto?'<span style="font-size:10px;color:#166534;margin-left:4px;">●auto</span>':''}</td>
+      ${vals.map((v,i)=>{
+        if (metric.auto) return `<td style="text-align:center;background:#fafaf8;color:#888;font-size:12px;">${v||v===0?Number(+v||0).toLocaleString('en-US',{minimumFractionDigits:metric.dec,maximumFractionDigits:metric.dec}):'—'}<br><input type="number" value="${v||''}" step="${metric.dec>0?'0.01':'1'}" onchange="S.ytd.data['${metric.key}'][${i}]=+this.value;save()" style="width:80px;font-size:11px;margin-top:2px;padding:2px 4px;border:1px solid var(--border);border-radius:4px;background:#fff;" placeholder="override"></td>`;
+        return `<td><input type="number" value="${v||''}" step="${metric.dec>0?'0.01':'1'}" onchange="S.ytd.data['${metric.key}'][${i}]=+this.value;save()" placeholder="0" style="width:90px;"></td>`;
+      }).join('')}
+      <td style="text-align:center;background:#f0fdf4;font-weight:600;color:#166534;font-size:13px;">${metric.auto ? Number(autoVals[metric.key]).toLocaleString('en-US',{minimumFractionDigits:metric.dec,maximumFractionDigits:metric.dec}) : '<input type="number" step="'+(metric.dec>0?'0.01':'1')+'" placeholder="0" id="ytd-curr-'+metric.key+'" onchange="if(!S.ytd._currManual)S.ytd._currManual={};S.ytd._currManual[\''+metric.key+'\']=+this.value;save()" style="width:90px;" value="'+(S.ytd?._currManual?.[metric.key]||'')+'">'}</td>
+      <td style="text-align:center;font-weight:500;font-size:12px;color:${chgCol};">${chg}</td>
+      <td style="text-align:center;background:#faf9f6;font-weight:600;font-size:12px;">${Number(total).toLocaleString('en-US',{minimumFractionDigits:metric.dec,maximumFractionDigits:metric.dec})}</td>
+    </tr>`;
+  });
+
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+}
 
 // ═══════════════════════════════════════
 // ANALYTICS JSON IMPORT
@@ -1370,7 +1465,7 @@ function _buildDocx() {
     ${regionMonthlyXml}
     ${spacer(1.5)}
 
-    ${heading((s.monthC||'This Month')+' Monthly Summary')}
+    ${heading((s.yearLabel||new Date().getFullYear())+' Monthly Summary — Year to Date')}
     ${spacer(0.5)}
     ${monthlyTableXml}
     ${spacer(1.5)}
@@ -1905,22 +2000,84 @@ function renderReport() {
       </div>
     </div>
 
-    <div class="sec">
-      <div class="sec-hdr"><span class="sec-ttl">${esc(s.monthC||'This Month')} Summary</span><span class="sec-sub">vs ${esc(s.monthP||'last month')}</span></div>
-      <div class="kpi-grid">
-        ${KC('Total ad spend','$'+fmt(mTot.spend,0),pct(mTot.spend,m.spendP),isUp(mTot.spend,m.spendP),false,'Last month: $'+fmt(m.spendP||0,0))}
-        ${KC('Registrations',mTot.reg,pct(mTot.reg,m.regP),true,true,'Last month: '+(m.regP||'—'))}
-        ${KC('Depositing users',mTot.dep,pct(mTot.dep,m.depP),true,true,'Last month: '+(m.depP||'—'))}
-        ${KC('Total deposits','$'+fmt(mTot.deps,0),pct(mTot.deps,m.depsP),true,true,'Last month: $'+fmt(m.depsP||0,0))}
-      </div>
-      <div class="two-col">
-        <div class="tbl-wrap" style="margin-bottom:0;"><table class="rt">
-          <thead><tr><th>Metric</th><th>${esc(s.monthP||'Prev')}</th><th>${esc(s.monthC||'Curr')}</th><th>Change</th></tr></thead>
-          <tbody>${mRows}</tbody>
-        </table></div>
-        <div class="chart-card"><div class="chart-ttl">${esc(s.monthP||'Prev')} vs ${esc(s.monthC||'Current')}</div><div class="chart-wrap"><canvas id="cMom"></canvas></div></div>
-      </div>
-    </div>
+    ${(()=>{
+      // Build YTD table
+      const ytd = s.ytd||{months:[],data:{}};
+      const YM = [
+        {key:'spend',lbl:'Total Ad Spend ($)',  auto:true,  dec:0},
+        {key:'reg',  lbl:'Registrations',        auto:true,  dec:0},
+        {key:'dep',  lbl:'Depositing Users',      auto:true,  dec:0},
+        {key:'deps', lbl:'Total Deposits ($)',    auto:true,  dec:0},
+        {key:'acc',  lbl:'Accounts Opened',       auto:false, dec:0},
+        {key:'out',  lbl:'Withdrawals ($)',        auto:false, dec:2},
+        {key:'net',  lbl:'Net Deposits ($)',       auto:false, dec:2},
+        {key:'lot',  lbl:'Trading Vol (lot)',      auto:false, dec:3},
+      ];
+      const autoVals = {spend:mTot.spend, reg:mTot.reg, dep:mTot.dep, deps:mTot.deps};
+      const allMonths = [...(ytd.months||[]), s.monthC||'Current'];
+      const prevMonth = allMonths.length>=2 ? allMonths[allMonths.length-2] : null;
+
+      // KPI cards: current vs previous month
+      const prevData = {};
+      const currManual = ytd._currManual||{};
+      YM.forEach(m=>{
+        const vals = ytd.data?.[m.key]||[];
+        prevData[m.key] = vals.length>0 ? (+vals[vals.length-1]||0) : 0;
+      });
+
+      const kpiHtml = `<div class="kpi-grid">
+        ${KC('Total ad spend','$'+fmt(mTot.spend,0),pct(mTot.spend,prevData.spend),isUp(mTot.spend,prevData.spend),false,'vs '+(prevMonth||'prev')+': $'+fmt(prevData.spend,0))}
+        ${KC('Registrations',mTot.reg,pct(mTot.reg,prevData.reg),true,true,'vs '+(prevMonth||'prev')+': '+prevData.reg)}
+        ${KC('Depositing users',mTot.dep,pct(mTot.dep,prevData.dep),true,true,'vs '+(prevMonth||'prev')+': '+prevData.dep)}
+        ${KC('Total deposits','$'+fmt(mTot.deps,0),pct(mTot.deps,prevData.deps),true,true,'vs '+(prevMonth||'prev')+': $'+fmt(prevData.deps,0))}
+      </div>`;
+
+      // Full YTD table
+      const colCount = allMonths.length;
+      const colStyle = 'font-size:13px;text-align:right;';
+      const tableRows = YM.map((metric,mi)=>{
+        const vals = ytd.data?.[metric.key]||[];
+        const currVal = metric.auto ? autoVals[metric.key] : (+currManual[metric.key]||0);
+        const allVals = [...vals.map(v=>+v||0), currVal];
+        const total   = allVals.reduce((a,b)=>a+b,0);
+        const prev    = allVals.length>=2 ? allVals[allVals.length-2] : 0;
+        const pv      = prev>0?((currVal-prev)/prev*100):null;
+        const chg     = pv!==null?(pv>=0?'▲ +':'▼ ')+Math.abs(pv).toFixed(1)+'%':'—';
+        const chgCol  = pv===null?'var(--muted)':pv>=0?'var(--up)':'var(--dn)';
+        const isBold  = mi===0;
+        const fmtV = (v,d=metric.dec)=>v||v===0?Number(v).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d}):'—';
+
+        return `<tr style="${mi===0?'background:#faf9f6;font-weight:600;':mi%2===0?'background:#fafaf8;':''}">
+          <td style="font-size:13px;font-weight:${isBold?'600':'400'}">${metric.lbl}</td>
+          ${vals.map(v=>`<td style="${colStyle}">${fmtV(+v||0)}</td>`).join('')}
+          <td style="${colStyle}font-weight:600;color:var(--up);background:#f0fdf4;">${fmtV(currVal)}</td>
+          <td style="${colStyle}font-weight:500;color:${chgCol};">${chg}</td>
+          <td style="${colStyle}font-weight:600;background:#faf9f6;">${fmtV(total)}</td>
+        </tr>`;
+      }).join('');
+
+      const thead = `<tr class="grp">
+        <th class="first">Metric</th>
+        ${(ytd.months||[]).map(m=>`<th style="text-align:right;">${esc(m)}</th>`).join('')}
+        <th style="text-align:right;background:#1a4d2e;">${esc(s.monthC||'Current')}</th>
+        <th style="text-align:right;background:#333;">Change</th>
+        <th style="text-align:right;background:#111;">YTD Total</th>
+      </tr>`;
+
+      return `<div class="sec">
+        <div class="sec-hdr">
+          <span class="sec-ttl">${esc(s.yearLabel||new Date().getFullYear())} Monthly Summary</span>
+          <span class="sec-sub">Year-to-date · Current month: ${esc(s.monthC||'—')}</span>
+        </div>
+        ${kpiHtml}
+        <div style="overflow-x:auto;margin-top:4px;">
+          <div class="tbl-wrap"><table class="rt">
+            <thead>${thead}</thead>
+            <tbody>${tableRows}</tbody>
+          </table></div>
+        </div>
+      </div>`;
+    })()}
 
     ${(ig.s3||ig.f3||ig.start) ? `<div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">${esc(s.igTitle||'Follower Growth Campaign')}</span><span class="sec-sub">3-week trend</span></div>
@@ -1991,10 +2148,7 @@ function renderReport() {
     wLabels.map((lbl,wi)=>({label:lbl,data:s.regions.map(r=>(r.weeks[wi]&&!r.weeks[wi].paused)?(+r.weeks[wi].reg||0):0),backgroundColor:wColors[wi],borderRadius:3}))
   ,},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX,ticks:{...AX.ticks,maxRotation:20}},y:{...AX,beginAtZero:true}}}}));
 
-  CHARTS.push(new Chart(document.getElementById('cMom'),{type:'bar',data:{labels:['Registrations','Accounts','Net dep ($00s)'],datasets:[
-    {label:s.monthP||'Prev',data:[+m.regP||0,+m.accP||0,+((m.netP||0)/100).toFixed(1)],backgroundColor:GR,borderRadius:4},
-    {label:s.monthC||'Curr',data:[+m.regC||0,+m.accC||0,+((m.netC||0)/100).toFixed(1)],backgroundColor:DK,borderRadius:4},
-  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:LG},scales:{x:{...AX},y:{...AX,beginAtZero:true}}}}));
+  // cMom removed — replaced by YTD table
 
   if(document.getElementById('cIG')) {
     CHARTS.push(new Chart(document.getElementById('cIG'),{data:{
