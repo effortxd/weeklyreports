@@ -496,15 +496,16 @@ const SAMPLE = {
     },
   ],
   ytd:{
-    months:['Jan','Feb','Mar'],
+    months:['Jan','Feb','Mar','April'],
     data:{
-      spend: [18150.04, 7893.31, 7142.92],
-      reg:   [1695, 702, 55],
-      acc:   [24, 24, 23],
-      deps:  [1317.80, 3266.56, 3129],
-      out:   [445.47, 2111.25, 1197],
-      net:   [872.33, 1155.26, 1932],
-      lot:   [11.69, 41.84, 46.990],
+      spend: [18150.04, 7893.31, 7142.92, 9728],
+      reg:   [1695, 702, 55, 120],
+      dep:   [0, 0, 0, 4],
+      acc:   [24, 24, 23, 55],
+      deps:  [1317.80, 3266.56, 3129, 6298],
+      out:   [445.47, 2111.25, 1197, 2991],
+      net:   [872.33, 1155.26, 1932, 3307],
+      lot:   [11.69, 41.84, 46.990, 111.49],
     }
   },
   ig:{ s1:55, f1:221, s2:30, f2:559, s3:30, f3:308, start:5102, end:5410 },
@@ -780,6 +781,11 @@ function getYTD() {
   if (!S.ytd) S.ytd = { months:[], data:{ spend:[],reg:[],dep:[],deps:[],acc:[],out:[],net:[],lot:[] } };
   if (!S.ytd.data) S.ytd.data = {};
   YTD_METRICS.forEach(m => { if(!S.ytd.data[m.key]) S.ytd.data[m.key]=[]; });
+  // Ensure all arrays are same length as months
+  const n = (S.ytd.months||[]).length;
+  YTD_METRICS.forEach(m => {
+    while ((S.ytd.data[m.key]||[]).length < n) S.ytd.data[m.key].push('');
+  });
   return S.ytd;
 }
 
@@ -1623,7 +1629,22 @@ let CHARTS = [];
 function renderReport() {
   CHARTS.forEach(c=>c.destroy()); CHARTS=[];
   collect();
-  const s=S, m=s.monthly, ig=s.ig;
+  const s=S, ig=s.ig;
+  // Derive m from ytd (previous month data)
+  const _ytd = s.ytd||{months:[],data:{}};
+  const _ytdD = _ytd.data||{};
+  const _pi = (_ytd.months||[]).length - 1;
+  const _cm = _ytd._currManual||{};
+  const m = {
+    spendP: _pi>=0?(+(_ytdD.spend||[])[_pi]||0):0,
+    regP:   _pi>=0?(+(_ytdD.reg||[])[_pi]||0):0,
+    depP:   _pi>=0?(+(_ytdD.dep||[])[_pi]||0):0,
+    depsP:  _pi>=0?(+(_ytdD.deps||[])[_pi]||0):0,
+    accP:   _pi>=0?(+(_ytdD.acc||[])[_pi]||0):0, accC: +(_cm.acc||0),
+    outP:   _pi>=0?(+(_ytdD.out||[])[_pi]||0):0, outC: +(_cm.out||0),
+    netP:   _pi>=0?(+(_ytdD.net||[])[_pi]||0):0, netC: +(_cm.net||0),
+    lotP:   _pi>=0?(+(_ytdD.lot||[])[_pi]||0):0, lotC: +(_cm.lot||0),
+  };
 
   // Migrate regions to 4-week format
   s.regions = s.regions.map(r => r.weeks ? r : {
