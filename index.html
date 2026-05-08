@@ -1185,9 +1185,9 @@ function _buildDocx() {
   const mTot = {spend:0,reg:0,dep:0,deps:0};
   wTots.forEach(t=>{mTot.spend+=t.spend;mTot.reg+=t.reg;mTot.dep+=t.dep;mTot.deps+=t.deps;});
   // Latest week (w4) for "this week" headline
-  const cTot = wTots[3];
-  // Previous week (w3) for WoW comparison
-  const pTot = wTots[2];
+  let latestWi2=0; for(let wi=0;wi<4;wi++){if(wTots[wi].spend>0||wTots[wi].reg>0||wTots[wi].deps>0)latestWi2=wi;}
+  const cTot = wTots[latestWi2];
+  const pTot = wTots[latestWi2>0?latestWi2-1:0];
   const bdgTotal = s.budget.reduce((a,b)=>a+(+b.daily||0),0);
   const ig1c=ig.f1?ig.s1/ig.f1:0, ig2c=ig.f2?ig.s2/ig.f2:0, ig3c=ig.f3?ig.s3/ig.f3:0;
 
@@ -1664,8 +1664,12 @@ function renderReport() {
   },{spend:0,reg:0,dep:0,deps:0}));
   const mTot={spend:0,reg:0,dep:0,deps:0};
   wTots.forEach(t=>{mTot.spend+=t.spend;mTot.reg+=t.reg;mTot.dep+=t.dep;mTot.deps+=t.deps;});
-  const cTot = wTots[3]; // latest week
-  const pTot = wTots[2]; // previous week
+  // Auto-detect latest week that has any data
+  let latestWi = 0;
+  for (let wi=0; wi<4; wi++) { if (wTots[wi].spend>0||wTots[wi].reg>0||wTots[wi].deps>0) latestWi=wi; }
+  const prevWi  = latestWi>0 ? latestWi-1 : 0;
+  const cTot = wTots[latestWi]; // latest active week
+  const pTot = wTots[prevWi];   // week before
   const bdgTotal = s.budget.reduce((a,b)=>a+(+b.daily||0),0);
   const BAR_COLS = ['#d97706','#2563eb','#7c3aed','#d97706','#2563eb','#7c3aed','#10b981','#ef4444'];
 
@@ -1881,6 +1885,64 @@ function renderReport() {
     }).join('')}
   </div>` : '';
 
+  // ── LP Showcase section (live previews) ──────────────────────────
+  const lpShowcase = (s.landingPages&&s.landingPages.length>0) ? (() => {
+    const pagesWithHostname = s.landingPages.filter(lp=>lp._hostname);
+    if (pagesWithHostname.length === 0) return '';
+    return `<div class="sec">
+      <div class="sec-hdr">
+        <span class="sec-ttl">Landing Page Showcase</span>
+        <span class="sec-sub">Live previews of active pages</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(${Math.min(pagesWithHostname.length,2)},minmax(0,1fr));gap:20px;">
+        ${pagesWithHostname.map(lp=>{
+          const url = 'https://'+lp._hostname;
+          const engaged = Math.round((lp.lpViews||0)*(1-(lp.bounceRate||0)/100));
+          const engRate = lp.clicks?Math.round((engaged/(lp.clicks||1))*100):0;
+          const score   = Math.round((engRate*0.5)+((lp.avgTime>=120?100:lp.avgTime>=60?75:lp.avgTime>=30?40:15)*0.3)+(((100-(lp.bounceRate||0))/100)*100*0.2));
+          const sCol    = score>=65?'#166534':score>=40?'#92400e':'#991b1b';
+          const tMin=Math.floor((lp.avgTime||0)/60), tSec=(lp.avgTime||0)%60;
+          const tLbl=tMin>0?tMin+'m '+tSec+'s':tSec+'s';
+          return `<div style="background:var(--surface);border:1px solid var(--border);border-radius:12px;overflow:hidden;">
+            <!-- Preview iframe -->
+            <div style="position:relative;width:100%;padding-bottom:56%;background:#f5f4f0;overflow:hidden;border-bottom:1px solid var(--border);">
+              <iframe src="${url}" style="position:absolute;top:0;left:0;width:200%;height:200%;transform:scale(0.5);transform-origin:top left;border:none;pointer-events:none;" loading="lazy" sandbox="allow-scripts allow-same-origin"></iframe>
+              <a href="${url}" target="_blank" style="position:absolute;inset:0;display:flex;align-items:flex-end;padding:10px;background:linear-gradient(to top,rgba(0,0,0,0.5) 0%,transparent 60%);text-decoration:none;">
+                <span style="font-size:11px;color:#fff;font-family:monospace;opacity:0.9;">${esc(lp._hostname)}</span>
+                <span style="margin-left:auto;background:rgba(255,255,255,0.2);color:#fff;font-size:11px;padding:3px 8px;border-radius:99px;backdrop-filter:blur(4px);">↗ Open</span>
+              </a>
+            </div>
+            <!-- Stats bar -->
+            <div style="padding:14px 16px;">
+              <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+                <div style="font-size:14px;font-weight:600;">${esc(lp.name)}</div>
+                <div style="font-size:18px;font-weight:600;color:${sCol};">${score}<span style="font-size:11px;color:var(--muted);font-weight:400;">/100</span></div>
+              </div>
+              <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;text-align:center;">
+                <div style="background:var(--bg);border-radius:7px;padding:7px 4px;">
+                  <div style="font-size:16px;font-weight:600;">${Number(lp.clicks||0).toLocaleString()}</div>
+                  <div style="font-size:10px;color:var(--muted);">Visitors</div>
+                </div>
+                <div style="background:${(lp.bounceRate||0)<50?'#f0fdf4':'#fef2f2'};border-radius:7px;padding:7px 4px;">
+                  <div style="font-size:16px;font-weight:600;color:${(lp.bounceRate||0)<50?'#166534':'#991b1b'}">${lp.bounceRate||0}%</div>
+                  <div style="font-size:10px;color:var(--muted);">Bounce</div>
+                </div>
+                <div style="background:${lp.avgTime>=60?'#f0fdf4':'#fef2f2'};border-radius:7px;padding:7px 4px;">
+                  <div style="font-size:16px;font-weight:600;color:${lp.avgTime>=60?'#166534':'#991b1b'}">${tLbl}</div>
+                  <div style="font-size:10px;color:var(--muted);">Avg time</div>
+                </div>
+                <div style="background:var(--bg);border-radius:7px;padding:7px 4px;">
+                  <div style="font-size:16px;font-weight:600;color:${sCol}">${engRate}%</div>
+                  <div style="font-size:10px;color:var(--muted);">Engaged</div>
+                </div>
+              </div>
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  })() : '';
+
   // ── Register LP donut charts after render ──
   function renderLPCharts() {
     let idx = 0;
@@ -1951,14 +2013,21 @@ function renderReport() {
         ${KC('Depositing users',cTot.dep,pct(cTot.dep,pTot.dep),isUp(cTot.dep,pTot.dep),true,'Last week: '+pTot.dep)}
         ${KC('Total deposits','$'+fmt(cTot.deps,0),pct(cTot.deps,pTot.deps),isUp(cTot.deps,pTot.deps),true,'Last week: $'+fmt(pTot.deps,0))}
       </div>
-      ${(()=>{const pausedW4=s.regions.filter(r=>r.weeks[3]&&r.weeks[3].paused); return pausedW4.length>0?`<div class="insight">This week's figures reflect active channels only. <strong>${pausedW4.map(r=>r.name).join(' and ')}</strong> ${pausedW4.length===1?'was':'were'} paused in Week 4.</div>`:'';})()}
+      ${(()=>{
+        const paused = s.regions.filter(r=>r.weeks[latestWi]&&r.weeks[latestWi].paused);
+        const wLbl = (s.weekLabels||[])[latestWi]||('Week '+(latestWi+1));
+        let msg = `Figures based on <strong>${esc(wLbl)}</strong>.`;
+        if(paused.length>0) msg += ` <strong>${paused.map(r=>r.name).join(' & ')}</strong> paused this week.`;
+        if(cTot.spend===0&&cTot.reg===0) msg = `⚠️ No data found for the latest week. Please check your weekly inputs — currently reading <strong>${esc(wLbl)}</strong>.`;
+        return `<div class="insight">${msg}</div>`;
+      })()}
     </div>
 
     <div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">Week-over-Week by Region</span></div>
 
       <!-- Table 1: Weekly spend trend -->
-      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Ad Spend by Week ($)</div>
+      <div style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;">Ad Spend by Week ($) &nbsp;<span style="font-weight:400;text-transform:none;font-size:12px;">— latest active week: <strong>${esc((s.weekLabels||[])[latestWi]||'Week '+(latestWi+1))}</strong></span></div>
       <div class="tbl-wrap" style="margin-bottom:20px;">
         <table class="rt">
           <thead>
@@ -2155,7 +2224,9 @@ function renderReport() {
         </div>`).join('')}
     </div>`:''}
 
-        ${s.projects.length>0?`<div class="sec">
+        ${lpShowcase}
+
+    ${s.projects.length>0?`<div class="sec">
       <div class="sec-hdr"><span class="sec-ttl">${esc(s.projTitle||'Project Updates')}</span></div>
       <div class="proj-grid">${projHTML}</div>
     </div>`:''}
